@@ -1,10 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, PlayCircle } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { AnimatedBadge, GradientText } from "@/components/ui-fx/gradient-text";
 import { NumberTicker } from "@/components/ui-fx/number-ticker";
-import { EnquiryDialog } from "@/components/site/enquiry-dialog";
 import { BrandWatermark } from "@/components/site/brand-watermark";
 
 export function Hero({
@@ -34,23 +32,15 @@ export function Hero({
           assistance — enrol online in minutes and start learning the same week.
         </p>
 
-        <div className="mt-8 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
+        <div className="mt-8">
           <Button
             render={<Link href="/courses" />}
             nativeButton={false}
             size="lg"
-            className="w-full bg-white text-brand-navy hover:bg-white/90 sm:w-auto"
+            className="bg-white text-brand-navy hover:bg-white/90"
           >
             Explore Courses <ArrowRight className="h-4 w-4" />
           </Button>
-          <EnquiryDialog
-            className={cn(
-              buttonVariants({ size: "lg", variant: "outline" }),
-              "w-full border-white/25 bg-white/5 text-white hover:bg-white/10 hover:text-white sm:w-auto"
-            )}
-          >
-            <PlayCircle className="h-4 w-4" /> Talk to a counsellor
-          </EnquiryDialog>
         </div>
 
         <div className="mt-14 grid w-full max-w-3xl grid-cols-3 gap-4 border-t border-white/10 pt-8">
