@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { BatchForm } from "@/components/admin/batch-form";
 import { OffersManager } from "@/components/admin/offers-manager";
 import { SessionsMaterialsManager } from "@/components/admin/sessions-materials-manager";
+import { BackLink } from "@/components/admin/back-link";
 import { updateBatch } from "@/lib/actions/admin-batches";
 
 export const metadata: Metadata = { title: "Manage Batch" };
@@ -35,6 +36,7 @@ export default async function EditBatchPage({
 
   return (
     <div className="space-y-10">
+      <BackLink href="/admin/batches" label="Back to batches" />
       <div>
         <h1 className="font-heading text-2xl font-bold">Manage Batch</h1>
         <p className="mt-1 text-sm text-muted-foreground">{batch.course.title}</p>

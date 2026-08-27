@@ -26,6 +26,7 @@ export function CourseFilters({ categories }: { categories: Category[] }) {
       <Select
         value={searchParams.get("category") ?? "all"}
         onValueChange={(v) => updateParam("category", v)}
+        items={{ all: "All categories", ...Object.fromEntries(categories.map((c) => [c.slug, c.name])) }}
       >
         <SelectTrigger className="w-full sm:w-[200px]">
           <SelectValue placeholder="Category" />
@@ -40,7 +41,11 @@ export function CourseFilters({ categories }: { categories: Category[] }) {
         </SelectContent>
       </Select>
 
-      <Select value={searchParams.get("mode") ?? "all"} onValueChange={(v) => updateParam("mode", v)}>
+      <Select
+        value={searchParams.get("mode") ?? "all"}
+        onValueChange={(v) => updateParam("mode", v)}
+        items={{ all: "All modes", ...Object.fromEntries(MODES.map((m) => [m, modeLabels[m]])) }}
+      >
         <SelectTrigger className="w-full sm:w-[180px]">
           <SelectValue placeholder="Mode" />
         </SelectTrigger>

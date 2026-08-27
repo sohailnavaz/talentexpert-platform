@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { CourseForm } from "@/components/admin/course-form";
 import { SyllabusBuilder } from "@/components/admin/syllabus-builder";
+import { BackLink } from "@/components/admin/back-link";
 import { updateCourse } from "@/lib/actions/admin-courses";
 
 export const metadata: Metadata = { title: "Edit Course" };
@@ -28,6 +29,7 @@ export default async function EditCoursePage({
 
   return (
     <div className="space-y-10">
+      <BackLink href="/admin/courses" label="Back to courses" />
       <div>
         <h1 className="font-heading text-2xl font-bold">Edit Course</h1>
         <p className="mt-1 text-sm text-muted-foreground">{course.title}</p>
