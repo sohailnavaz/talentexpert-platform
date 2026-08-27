@@ -55,7 +55,7 @@ export default async function AdminAnnouncementsPage() {
                   {formatDate(a.startAt)} {a.endAt ? `– ${formatDate(a.endAt)}` : "(no end date)"}
                 </TableCell>
                 <TableCell className="text-right">
-                  <AnnouncementRowActions id={a.id} active={a.active} />
+                  <AnnouncementRowActions id={a.id} active={a.active} audience={a.audience} />
                 </TableCell>
               </TableRow>
             ))}

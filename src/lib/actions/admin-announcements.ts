@@ -4,6 +4,8 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { verifyAdminSession, requireRole } from "@/lib/auth/dal";
+import { sendEmail } from "@/lib/email";
+import { logActivity } from "@/lib/audit";
 import type { AdminFormState } from "@/lib/actions/admin-courses";
 
 const schema = z.object({
@@ -62,4 +64,31 @@ export async function deleteAnnouncement(id: string) {
   await db.announcement.delete({ where: { id } });
   revalidatePath("/admin/announcements");
   revalidatePath("/");
+}
+
+export async function sendAnnouncementEmail(announcementId: string): Promise<number> {
+  const session = await verifyAdminSession();
+  requireRole(session, ["SUPER_ADMIN", "COORDINATOR"]);
+
+  const announcement = await db.announcement.findUnique({ where: { id: announcementId } });
+  if (!announcement || announcement.audience === "WEBSITE") return 0;
+
+  const students = await db.student.findMany({
+    where: { active: true },
+    select: { name: true, email: true },
+  });
+
+  for (const s of students) {
+    await sendEmail({
+      to: s.email,
+      subject: announcement.title,
+      html: `<p>Hi ${s.name},</p><p>${announcement.body}</p>`,
+    });
+  }
+
+  await logActivity(session.adminId, "announcement.email_blast", "Announcement", announcementId, {
+    recipients: students.length,
+  });
+
+  return students.length;
 }

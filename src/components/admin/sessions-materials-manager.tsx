@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Download, PlayCircle, Plus, Trash2 } from "lucide-react";
+import { BellRing, Download, PlayCircle, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
   deleteSession,
   updateSessionRecording,
 } from "@/lib/actions/admin-batches";
+import { sendSessionReminderNow } from "@/lib/actions/reminders";
 
 type SessionItem = {
   id: string;
@@ -126,14 +127,30 @@ export function SessionsMaterialsManager({
                 <span className="truncate">
                   {s.topic} — {formatDate(s.date)} {s.time}
                 </span>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  disabled={pending}
-                  onClick={() => startTransition(async () => { await deleteSession(s.id, batchId); router.refresh(); })}
-                >
-                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                </Button>
+                <div className="flex shrink-0 items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    disabled={pending}
+                    title="Email enrolled students a reminder now"
+                    onClick={() =>
+                      startTransition(async () => {
+                        const count = await sendSessionReminderNow(s.id, batchId);
+                        toast.success(`Reminder sent to ${count} student${count === 1 ? "" : "s"}.`);
+                      })
+                    }
+                  >
+                    <BellRing className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    disabled={pending}
+                    onClick={() => startTransition(async () => { await deleteSession(s.id, batchId); router.refresh(); })}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  </Button>
+                </div>
               </div>
               <SessionRecordingRow session={s} batchId={batchId} />
             </div>
