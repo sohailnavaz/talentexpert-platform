@@ -44,6 +44,7 @@ export const mainNav = [
     href: "/placements",
     children: [
       { label: "Placement Assistance", href: "/placements" },
+      { label: "Career Guidance", href: "/career-guidance" },
       { label: "Careers & Job Openings", href: "/careers" },
       { label: "Interview Questions", href: "/blog?category=interview-questions" },
     ],
@@ -71,6 +72,7 @@ export const footerLinks = {
   company: [
     { label: "About Us", href: "/about" },
     { label: "Trainers", href: "/trainers" },
+    { label: "Career Guidance", href: "/career-guidance" },
     { label: "Careers", href: "/careers" },
     { label: "Blog", href: "/blog" },
     { label: "Contact", href: "/contact" },

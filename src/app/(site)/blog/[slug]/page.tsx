@@ -28,8 +28,20 @@ export default async function BlogPostPage({
 
   const otherPosts = (await getPublishedPosts({ take: 4 })).filter((p) => p.id !== post.id).slice(0, 3);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt,
+    ...(post.coverImageUrl ? { image: post.coverImageUrl } : {}),
+    datePublished: post.publishedAt?.toISOString(),
+    dateModified: post.updatedAt.toISOString(),
+    author: { "@type": "Organization", name: post.authorName },
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <article className="mx-auto max-w-3xl px-4 py-14 sm:px-6 lg:px-8">
         <p className="text-xs font-medium text-muted-foreground">
           {post.publishedAt ? formatDate(post.publishedAt) : ""} · By {post.authorName}

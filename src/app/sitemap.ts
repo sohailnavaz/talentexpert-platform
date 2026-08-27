@@ -13,6 +13,7 @@ const STATIC_ROUTES = [
   "/internships",
   "/workshops",
   "/placements",
+  "/career-guidance",
   "/careers",
   "/trainers",
   "/blog",

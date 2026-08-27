@@ -26,8 +26,20 @@ export default async function TrainerDetailPage({
   const trainer = await getTrainerBySlug(slug);
   if (!trainer || !trainer.active) notFound();
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: trainer.name,
+    ...(trainer.bio ? { description: trainer.bio } : {}),
+    ...(trainer.photoUrl ? { image: trainer.photoUrl } : {}),
+    jobTitle: "Trainer",
+    knowsAbout: trainer.expertise,
+    worksFor: { "@type": "EducationalOrganization", name: "Talent Expert" },
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <section className="relative overflow-hidden bg-brand-navy text-white">
         <BrandWatermark />
         <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-5 px-4 py-16 text-center sm:px-6 lg:px-8">

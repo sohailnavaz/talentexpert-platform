@@ -44,8 +44,19 @@ const FAQS = [
 ];
 
 export default function FAQsPage() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <PageHero eyebrow="FAQs" title="Frequently Asked Questions" />
       <section className="mx-auto max-w-3xl px-4 py-14 sm:px-6 lg:px-8">
         <Accordion>
