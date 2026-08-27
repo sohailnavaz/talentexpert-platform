@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, CalendarPlus, Download, FileText, MessageSquare, Video } from "lucide-react";
 import { verifyStudentSession } from "@/lib/auth/dal";
@@ -14,8 +15,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { BatchMessageThread } from "@/components/portal/batch-message-thread";
-import { formatDate, modeLabels } from "@/lib/format";
+import { VideoEmbed } from "@/components/site/video-embed";
+import { formatDate, formatINR, modeLabels } from "@/lib/format";
 import { googleCalendarUrl } from "@/lib/calendar";
+import { getActiveOffer, computeEffectiveFee } from "@/lib/pricing";
 
 export const metadata: Metadata = { title: "Course Workspace" };
 
@@ -28,6 +31,48 @@ export default async function CourseWorkspacePage({
   const session = await verifyStudentSession();
   const enrollment = await getEnrollmentForStudent(session.studentId, enrollmentId);
   if (!enrollment) notFound();
+
+  if (enrollment.isTrial) {
+    const { batch } = enrollment;
+    const previewSession = batch.sessions.find((s) => s.isFreePreview && s.recordingUrl);
+    const offer = getActiveOffer(batch.offers);
+    const { effectiveFee } = computeEffectiveFee(Number(batch.fee), offer);
+
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <div>
+          <Badge className="bg-primary">Free preview</Badge>
+          <h1 className="mt-2 font-heading text-2xl font-bold">{batch.course.title}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            You have free access to the intro class. Enrol to unlock the full course.
+          </p>
+        </div>
+
+        {previewSession?.recordingUrl ? (
+          <VideoEmbed url={previewSession.recordingUrl} title={previewSession.topic} />
+        ) : (
+          <Card>
+            <CardContent className="p-6 text-sm text-muted-foreground">
+              The free intro class isn&apos;t available right now — check back soon.
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="flex flex-col items-start gap-3 rounded-2xl border border-primary/20 bg-primary/[0.04] p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-heading font-semibold">Ready for the full course?</p>
+            <p className="text-sm text-muted-foreground">
+              Enrol for {formatINR(effectiveFee)} to unlock every session, materials, attendance and your
+              certificate.
+            </p>
+          </div>
+          <Button render={<Link href={`/checkout/${batch.id}`} />} nativeButton={false} size="lg">
+            Enrol now
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const { batch } = enrollment;
   const now = new Date();

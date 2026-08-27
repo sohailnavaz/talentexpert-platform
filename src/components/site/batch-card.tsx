@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, Clock3, Users } from "lucide-react";
+import { CalendarDays, Clock3, PlayCircle, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatINR, modeLabels } from "@/lib/format";
@@ -7,10 +7,16 @@ import { computeEffectiveFee, getActiveOffer } from "@/lib/pricing";
 import type { Batch, Course, Offer, Trainer } from "@/generated/prisma";
 
 type BatchCardProps = {
-  batch: Batch & { course: Course; trainer?: Trainer | null; offers: Offer[] };
+  batch: Batch & {
+    course: Course;
+    trainer?: Trainer | null;
+    offers: Offer[];
+    sessions?: { recordingUrl: string | null }[];
+  };
 };
 
 export function BatchCard({ batch }: BatchCardProps) {
+  const freePreviewUrl = batch.sessions?.[0]?.recordingUrl ? `/preview/${batch.id}` : null;
   const offer = getActiveOffer(batch.offers);
   const { effectiveFee } = computeEffectiveFee(Number(batch.fee), offer);
   const seatsLeft = Math.max(0, batch.seatTotal - batch.seatsFilled);
@@ -57,13 +63,20 @@ export function BatchCard({ batch }: BatchCardProps) {
             {formatINR(effectiveFee)}
           </span>
         </div>
-        {seatsLeft === 0 ? (
-          <Button disabled>Sold out</Button>
-        ) : (
-          <Button render={<Link href={`/checkout/${batch.id}`} />} nativeButton={false}>
-            Enrol now
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {freePreviewUrl ? (
+            <Button variant="outline" size="sm" render={<Link href={freePreviewUrl} />} nativeButton={false}>
+              <PlayCircle className="h-3.5 w-3.5" /> Free intro
+            </Button>
+          ) : null}
+          {seatsLeft === 0 ? (
+            <Button disabled>Sold out</Button>
+          ) : (
+            <Button render={<Link href={`/checkout/${batch.id}`} />} nativeButton={false}>
+              Enrol now
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

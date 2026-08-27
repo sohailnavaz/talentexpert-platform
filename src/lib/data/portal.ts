@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 
 export async function getStudentEnrollments(studentId: string) {
   return db.enrollment.findMany({
-    where: { studentId, status: "PAID" },
+    where: { studentId, OR: [{ status: "PAID" }, { isTrial: true }] },
     include: {
       batch: { include: { course: true, trainer: true } },
     },
@@ -12,7 +12,7 @@ export async function getStudentEnrollments(studentId: string) {
 
 export async function getEnrollmentForStudent(studentId: string, enrollmentId: string) {
   return db.enrollment.findFirst({
-    where: { id: enrollmentId, studentId, status: "PAID" },
+    where: { id: enrollmentId, studentId, OR: [{ status: "PAID" }, { isTrial: true }] },
     include: {
       batch: {
         include: {
@@ -20,6 +20,7 @@ export async function getEnrollmentForStudent(studentId: string, enrollmentId: s
           trainer: true,
           sessions: { orderBy: { date: "asc" } },
           materials: { orderBy: { createdAt: "desc" } },
+          offers: true,
         },
       },
       testAttempts: { orderBy: { completedAt: "desc" } },

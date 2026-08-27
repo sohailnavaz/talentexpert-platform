@@ -38,7 +38,11 @@ export async function getCourseBySlug(slug: string) {
       batches: {
         where: { status: { in: ["UPCOMING", "ONGOING"] } },
         orderBy: { startDate: "asc" },
-        include: { offers: true, trainer: true },
+        include: {
+          offers: true,
+          trainer: true,
+          sessions: { where: { isFreePreview: true }, take: 1 },
+        },
       },
       reviews: {
         where: { hidden: false },

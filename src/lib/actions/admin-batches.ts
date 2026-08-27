@@ -156,7 +156,7 @@ export async function deleteOffer(offerId: string, batchId: string) {
 
 export async function addSession(
   batchId: string,
-  data: { topic: string; date: string; time: string; joinUrl: string }
+  data: { topic: string; date: string; time: string; joinUrl: string; recordingUrl?: string; isFreePreview?: boolean }
 ) {
   await verifyAdminSession();
   await db.classSession.create({
@@ -166,10 +166,28 @@ export async function addSession(
       date: new Date(data.date),
       time: data.time,
       joinUrl: data.joinUrl,
+      recordingUrl: data.recordingUrl || null,
+      isFreePreview: data.isFreePreview ?? false,
     },
   });
   revalidatePath(`/admin/batches/${batchId}/edit`);
   revalidatePath("/portal");
+  revalidatePath(`/preview/${batchId}`);
+}
+
+export async function updateSessionRecording(
+  sessionId: string,
+  batchId: string,
+  data: { recordingUrl: string; isFreePreview: boolean }
+) {
+  await verifyAdminSession();
+  await db.classSession.update({
+    where: { id: sessionId },
+    data: { recordingUrl: data.recordingUrl || null, isFreePreview: data.isFreePreview },
+  });
+  revalidatePath(`/admin/batches/${batchId}/edit`);
+  revalidatePath("/portal");
+  revalidatePath(`/preview/${batchId}`);
 }
 
 export async function deleteSession(sessionId: string, batchId: string) {

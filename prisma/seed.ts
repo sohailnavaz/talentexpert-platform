@@ -642,9 +642,17 @@ async function main() {
       },
     });
 
-    if (courseIds.indexOf({ id, title }) === -1 && Math.random() > 0.4) {
-      // no-op placeholder kept simple
-    }
+    await db.classSession.create({
+      data: {
+        batchId: batch.id,
+        topic: "Orientation & course walkthrough",
+        date: daysFromNow(1),
+        time: "7:00 PM - 8:00 PM IST",
+        joinUrl: "https://meet.google.com/example-demo-link",
+        recordingUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        isFreePreview: true,
+      },
+    });
 
     // give roughly half the batches an early-bird offer
     if (Math.random() > 0.45) {
@@ -778,7 +786,7 @@ async function main() {
       await db.classSession.create({
         data: {
           batchId: firstBatch.id,
-          topic: "Orientation & environment setup",
+          topic: "Environment setup & first assignment",
           date: daysFromNow(2),
           time: "7:00 PM IST",
           joinUrl: "https://meet.google.com/example-demo-link",

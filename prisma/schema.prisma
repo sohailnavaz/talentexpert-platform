@@ -267,6 +267,7 @@ model Enrollment {
   coupon         Coupon?          @relation(fields: [couponId], references: [id])
   status         EnrollmentStatus @default(PENDING)
   portalUnlocked Boolean          @default(false)
+  isTrial        Boolean          @default(false)
   hoursLogged    Decimal          @default(0) @db.Decimal(6, 1)
   completedAt    DateTime?
   createdAt      DateTime         @default(now())
@@ -360,6 +361,8 @@ model ClassSession {
   date           DateTime
   time           String
   joinUrl        String
+  recordingUrl   String?
+  isFreePreview  Boolean   @default(false)
   reminderSentAt DateTime?
   createdAt      DateTime  @default(now())
 

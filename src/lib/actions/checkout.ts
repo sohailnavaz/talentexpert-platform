@@ -9,6 +9,7 @@ import { hashPassword, generateTempPassword } from "@/lib/auth/password";
 import { sendEmail } from "@/lib/email";
 import { generateEnrollmentCode } from "@/lib/enrollment-code";
 import { getActiveOffer, computeEffectiveFee, computeCouponDiscount } from "@/lib/pricing";
+import { findOrCreateStudent } from "@/lib/student-provisioning";
 
 const detailsSchema = z.object({
   name: z.string().trim().min(2, "Please enter your name"),
@@ -38,22 +39,6 @@ export type StartCheckoutResult =
       phone: string;
     }
   | { ok: false; message: string };
-
-async function findOrCreateStudent(details: { name: string; email: string; phone: string; whatsapp?: string }) {
-  const existing = await db.student.findUnique({ where: { email: details.email } });
-  if (existing) return existing;
-
-  const unusablePasswordHash = await hashPassword(crypto.randomUUID());
-  return db.student.create({
-    data: {
-      name: details.name,
-      email: details.email,
-      phone: details.phone,
-      whatsapp: details.whatsapp || null,
-      passwordHash: unusablePasswordHash,
-    },
-  });
-}
 
 async function issuePortalAccessEmail(enrollmentId: string) {
   const enrollment = await db.enrollment.findUniqueOrThrow({
@@ -123,40 +108,67 @@ export async function startCheckout(batchId: string, details: CheckoutDetails): 
   }
 
   const student = await findOrCreateStudent(parsed.data);
-  const enrollmentCode = await generateEnrollmentCode();
+  const existingTrial = await db.enrollment.findFirst({
+    where: { studentId: student.id, batchId: batch.id, isTrial: true },
+  });
+  const enrollmentCode = existingTrial?.enrollmentCode ?? (await generateEnrollmentCode());
 
   if (amountDue === 0) {
-    const enrollment = await db.enrollment.create({
-      data: {
-        enrollmentCode,
-        studentId: student.id,
-        batchId: batch.id,
-        amountDue: 0,
-        amountPaid: 0,
-        discountAmount: couponDiscount,
-        couponId: coupon?.id,
-        status: "PAID",
-        portalUnlocked: true,
-      },
-    });
+    const enrollment = existingTrial
+      ? await db.enrollment.update({
+          where: { id: existingTrial.id },
+          data: {
+            isTrial: false,
+            amountDue: 0,
+            amountPaid: 0,
+            discountAmount: couponDiscount,
+            couponId: coupon?.id,
+            status: "PAID",
+            portalUnlocked: true,
+          },
+        })
+      : await db.enrollment.create({
+          data: {
+            enrollmentCode,
+            studentId: student.id,
+            batchId: batch.id,
+            amountDue: 0,
+            amountPaid: 0,
+            discountAmount: couponDiscount,
+            couponId: coupon?.id,
+            status: "PAID",
+            portalUnlocked: true,
+          },
+        });
     await db.batch.update({ where: { id: batch.id }, data: { seatsFilled: { increment: 1 } } });
     if (coupon) await db.coupon.update({ where: { id: coupon.id }, data: { usedCount: { increment: 1 } } });
     await issuePortalAccessEmail(enrollment.id);
     return { ok: true, free: true, enrollmentId: enrollment.id };
   }
 
-  const enrollment = await db.enrollment.create({
-    data: {
-      enrollmentCode,
-      studentId: student.id,
-      batchId: batch.id,
-      amountDue,
-      amountPaid: 0,
-      discountAmount: couponDiscount,
-      couponId: coupon?.id,
-      status: "PENDING",
-    },
-  });
+  const enrollment = existingTrial
+    ? await db.enrollment.update({
+        where: { id: existingTrial.id },
+        data: {
+          amountDue,
+          amountPaid: 0,
+          discountAmount: couponDiscount,
+          couponId: coupon?.id,
+          status: "PENDING",
+        },
+      })
+    : await db.enrollment.create({
+        data: {
+          enrollmentCode,
+          studentId: student.id,
+          batchId: batch.id,
+          amountDue,
+          amountPaid: 0,
+          discountAmount: couponDiscount,
+          couponId: coupon?.id,
+          status: "PENDING",
+        },
+      });
 
   let order;
   try {
@@ -222,7 +234,7 @@ export async function verifyCheckoutPayment(input: {
 
   const enrollment = await db.enrollment.update({
     where: { id: input.enrollmentId },
-    data: { status: "PAID", amountPaid: payment.amount, portalUnlocked: true },
+    data: { status: "PAID", amountPaid: payment.amount, portalUnlocked: true, isTrial: false },
   });
 
   await db.payment.update({

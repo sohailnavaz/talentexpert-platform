@@ -74,7 +74,13 @@ export default async function PortalDashboardPage() {
                   <CardHeader>
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="font-heading text-base">{e.batch.course.title}</CardTitle>
-                      {e.completedAt ? <Badge className="bg-emerald-600">Completed</Badge> : <Badge variant="secondary">Ongoing</Badge>}
+                      {e.isTrial ? (
+                        <Badge className="bg-primary">Free preview</Badge>
+                      ) : e.completedAt ? (
+                        <Badge className="bg-emerald-600">Completed</Badge>
+                      ) : (
+                        <Badge variant="secondary">Ongoing</Badge>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-1.5 text-sm text-muted-foreground">

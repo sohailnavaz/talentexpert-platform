@@ -2,10 +2,11 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Download, Plus, Trash2 } from "lucide-react";
+import { Download, PlayCircle, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { formatDate } from "@/lib/format";
 import { saveUploadedFileAction } from "@/lib/actions/uploads";
 import {
@@ -13,10 +14,57 @@ import {
   addSession,
   deleteMaterial,
   deleteSession,
+  updateSessionRecording,
 } from "@/lib/actions/admin-batches";
 
-type SessionItem = { id: string; topic: string; date: string; time: string; joinUrl: string };
+type SessionItem = {
+  id: string;
+  topic: string;
+  date: string;
+  time: string;
+  joinUrl: string;
+  recordingUrl: string | null;
+  isFreePreview: boolean;
+};
 type MaterialItem = { id: string; title: string; fileUrl: string };
+
+function SessionRecordingRow({ session, batchId }: { session: SessionItem; batchId: string }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [recordingUrl, setRecordingUrl] = useState(session.recordingUrl ?? "");
+  const [isFreePreview, setIsFreePreview] = useState(session.isFreePreview);
+
+  return (
+    <div className="mt-2 flex flex-col gap-1.5 rounded-lg bg-secondary/40 p-2">
+      <Input
+        value={recordingUrl}
+        onChange={(e) => setRecordingUrl(e.target.value)}
+        placeholder="Recording URL (YouTube, Vimeo, or direct video link)"
+        className="h-8 text-xs"
+      />
+      <div className="flex items-center justify-between gap-2">
+        <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Checkbox checked={isFreePreview} onCheckedChange={(v) => setIsFreePreview(v === true)} />
+          <PlayCircle className="h-3 w-3" /> Free intro preview
+        </label>
+        <Button
+          type="button"
+          size="xs"
+          disabled={pending}
+          onClick={() =>
+            startTransition(async () => {
+              await updateSessionRecording(session.id, batchId, { recordingUrl, isFreePreview });
+              toast.success("Session updated.");
+              router.refresh();
+            })
+          }
+        >
+          Save
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export function SessionsMaterialsManager({
   batchId,
@@ -73,18 +121,21 @@ export function SessionsMaterialsManager({
         <h3 className="font-heading text-base font-semibold">Session links</h3>
         <div className="mt-3 space-y-2">
           {sessions.map((s) => (
-            <div key={s.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm">
-              <span className="truncate">
-                {s.topic} — {formatDate(s.date)} {s.time}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                disabled={pending}
-                onClick={() => startTransition(async () => { await deleteSession(s.id, batchId); router.refresh(); })}
-              >
-                <Trash2 className="h-3.5 w-3.5 text-destructive" />
-              </Button>
+            <div key={s.id} className="rounded-lg border border-border px-3 py-2 text-sm">
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate">
+                  {s.topic} — {formatDate(s.date)} {s.time}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={pending}
+                  onClick={() => startTransition(async () => { await deleteSession(s.id, batchId); router.refresh(); })}
+                >
+                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                </Button>
+              </div>
+              <SessionRecordingRow session={s} batchId={batchId} />
             </div>
           ))}
         </div>
