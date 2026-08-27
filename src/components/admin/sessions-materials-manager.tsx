@@ -83,7 +83,7 @@ function SessionDetailsEditor({
       </div>
       {hasRoom ? (
         <p className="rounded-md bg-secondary/40 px-2 py-1.5 text-[0.7rem] text-muted-foreground">
-          This session has an auto-created video room — its link can't be edited here.
+          This session has an auto-created video room — its link can&apos;t be edited here.
         </p>
       ) : (
         <Input
