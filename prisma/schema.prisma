@@ -41,6 +41,7 @@ model Student {
   passwordHash      String
   mustChangePassword Boolean  @default(true)
   avatarUrl         String?
+  bio               String?
   active            Boolean   @default(true)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -49,6 +50,7 @@ model Student {
   payments          Payment[]
   leads             Lead[]
   jobApplications   JobApplication[]
+  badges            StudentBadge[]
 
   @@index([email])
 }
@@ -238,14 +240,52 @@ model Enrollment {
   coupon           Coupon?          @relation(fields: [couponId], references: [id])
   status           EnrollmentStatus @default(PENDING)
   portalUnlocked   Boolean          @default(false)
+  hoursLogged      Decimal          @db.Decimal(6, 1) @default(0)
+  completedAt      DateTime?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
   payments         Payment[]
+  testAttempts     TestAttempt[]
 
   @@index([studentId])
   @@index([batchId])
   @@index([status])
+}
+
+model TestAttempt {
+  id           String     @id @default(cuid())
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  title        String
+  scorePercent Int
+  completedAt  DateTime   @default(now())
+
+  @@index([enrollmentId])
+}
+
+model Badge {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  label       String
+  description String
+  icon        String
+  criteria    Json
+  createdAt   DateTime @default(now())
+
+  studentBadges StudentBadge[]
+}
+
+model StudentBadge {
+  id        String   @id @default(cuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  badgeId   String
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  earnedAt  DateTime @default(now())
+
+  @@unique([studentId, badgeId])
+  @@index([studentId])
 }
 
 enum PaymentStatus {
