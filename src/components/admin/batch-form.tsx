@@ -45,7 +45,7 @@ export function BatchForm({
   action: (state: AdminFormState, formData: FormData) => Promise<AdminFormState>;
   courses: CourseOption[];
   trainers: Trainer[];
-  batch?: Batch & { fee: number };
+  batch?: Omit<Batch, "fee"> & { fee: number };
   submitLabel?: string;
 }) {
   const [state, formAction] = useActionState(action, { ok: true });

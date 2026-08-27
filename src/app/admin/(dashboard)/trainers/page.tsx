@@ -1,0 +1,83 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Plus } from "lucide-react";
+import { db } from "@/lib/db";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
+import { deleteTrainer } from "@/lib/actions/admin-trainers";
+
+export const metadata: Metadata = { title: "Trainers" };
+
+export default async function AdminTrainersPage() {
+  const trainers = await db.trainer.findMany({
+    orderBy: { name: "asc" },
+    include: { _count: { select: { courses: true } } },
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-heading text-2xl font-bold">Trainers</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{trainers.length} total</p>
+        </div>
+        <Button render={<Link href="/admin/trainers/new" />} nativeButton={false}>
+          <Plus className="h-4 w-4" /> Add Trainer
+        </Button>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Experience</TableHead>
+              <TableHead>Courses</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {trainers.map((t) => (
+              <TableRow key={t.id}>
+                <TableCell className="font-medium">{t.name}</TableCell>
+                <TableCell>{t.experienceYears ? `${t.experienceYears}+ years` : "—"}</TableCell>
+                <TableCell>{t._count.courses}</TableCell>
+                <TableCell>
+                  <Badge variant={t.active ? "default" : "secondary"}>{t.active ? "Active" : "Inactive"}</Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
+                    <Button variant="ghost" size="sm" render={<Link href={`/admin/trainers/${t.id}/edit`} />} nativeButton={false}>
+                      Edit
+                    </Button>
+                    <ConfirmDeleteButton
+                      action={deleteTrainer.bind(null, t.id)}
+                      description={`Delete ${t.name}? Courses referencing this trainer will show no trainer.`}
+                    />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+            {trainers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
+                  No trainers yet.
+                </TableCell>
+              </TableRow>
+            ) : null}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}

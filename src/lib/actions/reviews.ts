@@ -60,3 +60,16 @@ export async function setReviewHidden(reviewId: string, hidden: boolean) {
   revalidatePath(`/courses/${review.course.slug}`);
   revalidatePath("/admin/reviews");
 }
+
+export async function deleteReview(reviewId: string) {
+  const session = await verifyAdminSession();
+  requireRole(session, ["SUPER_ADMIN", "COORDINATOR"]);
+
+  const review = await db.review.delete({
+    where: { id: reviewId },
+    include: { course: { select: { slug: true } } },
+  });
+
+  revalidatePath(`/courses/${review.course.slug}`);
+  revalidatePath("/admin/reviews");
+}

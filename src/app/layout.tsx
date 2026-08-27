@@ -69,7 +69,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <TooltipProvider delayDuration={150}>
+          <TooltipProvider delay={150}>
             {children}
             <Toaster richColors position="top-center" />
           </TooltipProvider>
