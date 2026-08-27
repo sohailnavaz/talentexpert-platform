@@ -28,7 +28,9 @@ import { EnquiryDialog } from "@/components/site/enquiry-dialog";
 import { SiteSearch } from "@/components/site/site-search";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-export function Navbar() {
+export function Navbar({ phone, phoneHref }: { phone?: string; phoneHref?: string } = {}) {
+  const displayPhone = phone ?? siteConfig.phone;
+  const displayPhoneHref = phoneHref ?? siteConfig.phoneHref;
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const pathname = usePathname();
@@ -106,11 +108,11 @@ export function Navbar() {
           </Button>
           <ThemeToggle />
           <a
-            href={siteConfig.phoneHref}
+            href={displayPhoneHref}
             className="hidden items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground xl:flex"
           >
             <Phone className="h-4 w-4" />
-            {siteConfig.phone}
+            {displayPhone}
           </a>
           <Button
             render={<Link href="/login" />}
@@ -176,7 +178,7 @@ export function Navbar() {
                   <ThemeToggle className="border border-border" />
                 </div>
                 <div className="mt-2 flex flex-col gap-2">
-                  <Button variant="outline" render={<a href={siteConfig.phoneHref} />} nativeButton={false}>
+                  <Button variant="outline" render={<a href={displayPhoneHref} />} nativeButton={false}>
                     <Phone className="h-4 w-4" /> Call us
                   </Button>
                   <EnquiryDialog className={cn(buttonVariants(), "w-full")}>

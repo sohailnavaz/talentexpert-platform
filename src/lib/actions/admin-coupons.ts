@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { verifyAdminSession, requireRole } from "@/lib/auth/dal";
+import { logActivity } from "@/lib/audit";
 import type { AdminFormState } from "@/lib/actions/admin-courses";
 
 const schema = z.object({
@@ -33,7 +34,7 @@ export async function createCoupon(
   const existing = await db.coupon.findUnique({ where: { code: parsed.data.code } });
   if (existing) return { ok: false, message: "A coupon with this code already exists." };
 
-  await db.coupon.create({
+  const coupon = await db.coupon.create({
     data: {
       code: parsed.data.code,
       type: parsed.data.type,
@@ -42,6 +43,7 @@ export async function createCoupon(
       usageLimit: parsed.data.usageLimit ?? null,
     },
   });
+  await logActivity(session.adminId, "coupon.create", "Coupon", coupon.id, { code: coupon.code });
 
   revalidatePath("/admin/offers");
   return { ok: true, message: "Coupon created." };
@@ -60,5 +62,6 @@ export async function deleteCoupon(couponId: string) {
   const session = await verifyAdminSession();
   requireRole(session, ["SUPER_ADMIN"]);
   await db.coupon.delete({ where: { id: couponId } });
+  await logActivity(session.adminId, "coupon.delete", "Coupon", couponId);
   revalidatePath("/admin/offers");
 }

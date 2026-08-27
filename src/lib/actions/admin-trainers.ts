@@ -9,6 +9,7 @@ import { verifyAdminSession, requireRole } from "@/lib/auth/dal";
 import { saveUploadedFile } from "@/lib/storage";
 import { hashPassword, generateTempPassword } from "@/lib/auth/password";
 import { sendEmail } from "@/lib/email";
+import { logActivity } from "@/lib/audit";
 import type { AdminFormState } from "@/lib/actions/admin-courses";
 
 const schema = z.object({
@@ -93,6 +94,7 @@ export async function createTrainer(
       html: `<p>Hi ${d.name},</p><p>You've been given access to the trainer portal.</p><p>Sign in at <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/trainer/login">/trainer/login</a> with:</p><p>Email: ${d.email}<br/>Temporary password: <strong>${tempPassword}</strong></p>`,
     });
   }
+  await logActivity(session.adminId, "trainer.create", "Trainer", trainer.id, { name: trainer.name });
 
   revalidatePath("/admin/trainers");
   revalidatePath("/trainers");
@@ -159,6 +161,9 @@ export async function updateTrainer(
       subject: "Your Talent Expert trainer portal access",
       html: `<p>Hi ${d.name},</p><p>You've been given access to the trainer portal.</p><p>Sign in at <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/trainer/login">/trainer/login</a> with:</p><p>Email: ${d.email}<br/>Temporary password: <strong>${tempPassword}</strong></p>`,
     });
+    await logActivity(session.adminId, "trainer.grant_portal_access", "Trainer", trainerId, { email: d.email });
+  } else if (passwordHash === null) {
+    await logActivity(session.adminId, "trainer.revoke_portal_access", "Trainer", trainerId);
   }
 
   revalidatePath("/admin/trainers");
@@ -183,6 +188,7 @@ export async function resetTrainerPassword(trainerId: string): Promise<{ tempPas
     subject: "Your Talent Expert trainer portal password has been reset",
     html: `<p>Hi ${trainer.name},</p><p>Your temporary password is: <strong>${tempPassword}</strong></p><p>Sign in and set a new password.</p>`,
   });
+  await logActivity(session.adminId, "trainer.reset_password", "Trainer", trainerId);
 
   revalidatePath("/admin/trainers");
   return { tempPassword };
@@ -192,6 +198,7 @@ export async function deleteTrainer(trainerId: string) {
   const session = await verifyAdminSession();
   requireRole(session, ["SUPER_ADMIN"]);
   await db.trainer.delete({ where: { id: trainerId } });
+  await logActivity(session.adminId, "trainer.delete", "Trainer", trainerId);
   revalidatePath("/admin/trainers");
   revalidatePath("/trainers");
 }

@@ -2,15 +2,17 @@ import type { Metadata } from "next";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { PageHero } from "@/components/site/page-hero";
 import { Card, CardContent } from "@/components/ui/card";
-import { siteConfig } from "@/lib/site-config";
 import { ContactForm } from "@/components/site/contact-form";
+import { getSiteContactInfo } from "@/lib/site-settings";
 
 export const metadata: Metadata = {
   title: "Contact",
   description: "Get in touch with Talent Expert — phone, email, or send us a message.",
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const siteConfig = await getSiteContactInfo();
+
   return (
     <>
       <PageHero

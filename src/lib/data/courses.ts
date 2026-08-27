@@ -4,7 +4,7 @@ import type { DeliveryMode } from "@/generated/prisma";
 export async function getFeaturedCourses(take = 6) {
   return db.course.findMany({
     where: { status: "PUBLISHED" },
-    orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+    orderBy: [{ featured: "desc" }, { featuredOrder: "asc" }, { createdAt: "desc" }],
     take,
     include: { category: true, trainer: true },
   });

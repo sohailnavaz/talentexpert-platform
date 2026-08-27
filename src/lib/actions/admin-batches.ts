@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { verifyAdminSession, requireRole } from "@/lib/auth/dal";
+import { logActivity } from "@/lib/audit";
 import type { AdminFormState } from "@/lib/actions/admin-courses";
 
 const MODES = ["ONLINE", "CLASSROOM", "WEEKEND", "CORPORATE", "INTERNSHIP", "WORKSHOP"] as const;
@@ -65,6 +66,8 @@ export async function createBatch(
     },
   });
 
+  await logActivity(session.adminId, "batch.create", "Batch", batch.id);
+
   revalidatePath("/admin/batches");
   revalidatePath("/batches");
   redirect(`/admin/batches/${batch.id}/edit`);
@@ -100,6 +103,8 @@ export async function updateBatch(
     },
   });
 
+  await logActivity(session.adminId, "batch.update", "Batch", batchId);
+
   revalidatePath("/admin/batches");
   revalidatePath(`/admin/batches/${batchId}/edit`);
   revalidatePath("/batches");
@@ -110,6 +115,7 @@ export async function deleteBatch(batchId: string) {
   const session = await verifyAdminSession();
   requireRole(session, ["SUPER_ADMIN"]);
   await db.batch.delete({ where: { id: batchId } });
+  await logActivity(session.adminId, "batch.delete", "Batch", batchId);
   revalidatePath("/admin/batches");
   revalidatePath("/batches");
 }

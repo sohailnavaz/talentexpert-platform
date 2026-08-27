@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { slugify } from "@/lib/format";
 import { verifyAdminSession, requireRole } from "@/lib/auth/dal";
 import { saveUploadedFile } from "@/lib/storage";
+import { logActivity } from "@/lib/audit";
 
 const MODES = ["ONLINE", "CLASSROOM", "WEEKEND", "CORPORATE", "INTERNSHIP", "WORKSHOP"] as const;
 
@@ -23,6 +24,7 @@ const courseSchema = z.object({
   highlights: z.string().optional(),
   status: z.enum(["DRAFT", "PUBLISHED"]),
   featured: z.coerce.boolean().optional(),
+  featuredOrder: z.coerce.number().int().min(0).optional(),
 });
 
 export type AdminFormState = { ok: boolean; message?: string };
@@ -64,6 +66,7 @@ export async function createCourse(
     highlights: formData.get("highlights") || undefined,
     status: formData.get("status") ?? "DRAFT",
     featured: formData.get("featured") === "on",
+    featuredOrder: formData.get("featuredOrder") || undefined,
   });
 
   if (!parsed.success) {
@@ -94,9 +97,12 @@ export async function createCourse(
       highlights: linesToArray(data.highlights),
       status: data.status,
       featured: Boolean(data.featured),
+      featuredOrder: data.featuredOrder ?? 0,
       thumbnailUrl,
     },
   });
+
+  await logActivity(session.adminId, "course.create", "Course", course.id, { title: course.title });
 
   revalidatePath("/admin/courses");
   revalidatePath("/courses");
@@ -124,6 +130,7 @@ export async function updateCourse(
     highlights: formData.get("highlights") || undefined,
     status: formData.get("status") ?? "DRAFT",
     featured: formData.get("featured") === "on",
+    featuredOrder: formData.get("featuredOrder") || undefined,
   });
 
   if (!parsed.success) {
@@ -151,9 +158,12 @@ export async function updateCourse(
       highlights: linesToArray(data.highlights),
       status: data.status,
       featured: Boolean(data.featured),
+      featuredOrder: data.featuredOrder ?? 0,
       thumbnailUrl,
     },
   });
+
+  await logActivity(session.adminId, "course.update", "Course", courseId, { title: data.title });
 
   revalidatePath("/admin/courses");
   revalidatePath(`/admin/courses/${courseId}/edit`);
@@ -167,6 +177,7 @@ export async function deleteCourse(courseId: string) {
   requireRole(session, ["SUPER_ADMIN"]);
 
   const course = await db.course.delete({ where: { id: courseId } });
+  await logActivity(session.adminId, "course.delete", "Course", courseId, { title: course.title });
   revalidatePath("/admin/courses");
   revalidatePath("/courses");
   revalidatePath(`/courses/${course.slug}`);

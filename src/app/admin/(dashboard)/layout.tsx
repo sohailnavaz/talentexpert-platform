@@ -6,12 +6,14 @@ import {
   CalendarRange,
   FileText,
   Gift,
+  History,
   LayoutDashboard,
   LogOut,
   Megaphone,
   MessageSquare,
   Newspaper,
   Receipt,
+  Settings,
   ShieldCheck,
   Star,
   Users,
@@ -78,6 +80,8 @@ const NAV_GROUPS = [
     label: "System",
     items: [
       { label: "Users & Roles", href: "/admin/users", icon: ShieldCheck },
+      { label: "Site Settings", href: "/admin/settings", icon: Settings },
+      { label: "Audit Log", href: "/admin/audit-log", icon: History },
     ],
   },
 ];

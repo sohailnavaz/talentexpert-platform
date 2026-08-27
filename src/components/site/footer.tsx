@@ -3,8 +3,11 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import { InstagramIcon, LinkedinIcon, YoutubeIcon } from "@/components/icons/brand-icons";
 import { Logo } from "@/components/site/logo";
 import { siteConfig, footerLinks } from "@/lib/site-config";
+import { getSiteContactInfo } from "@/lib/site-settings";
 
-export function Footer() {
+export async function Footer() {
+  const contact = await getSiteContactInfo();
+
   return (
     <footer className="border-t border-border bg-secondary/40 pb-10">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
@@ -17,21 +20,21 @@ export function Footer() {
               {siteConfig.description}
             </p>
             <div className="mt-5 flex flex-col gap-2 text-sm text-muted-foreground">
-              <a href={siteConfig.phoneHref} className="flex items-center gap-2 hover:text-foreground">
-                <Phone className="h-4 w-4 shrink-0" /> {siteConfig.phone}
+              <a href={contact.phoneHref} className="flex items-center gap-2 hover:text-foreground">
+                <Phone className="h-4 w-4 shrink-0" /> {contact.phone}
               </a>
-              <a href={`mailto:${siteConfig.email}`} className="flex items-center gap-2 hover:text-foreground">
-                <Mail className="h-4 w-4 shrink-0" /> {siteConfig.email}
+              <a href={`mailto:${contact.email}`} className="flex items-center gap-2 hover:text-foreground">
+                <Mail className="h-4 w-4 shrink-0" /> {contact.email}
               </a>
               <span className="flex items-start gap-2">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0" /> {siteConfig.address}
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" /> {contact.address}
               </span>
             </div>
             <div className="mt-5 flex gap-3">
               {[
-                { href: siteConfig.socials.instagram, icon: InstagramIcon, label: "Instagram" },
-                { href: siteConfig.socials.linkedin, icon: LinkedinIcon, label: "LinkedIn" },
-                { href: siteConfig.socials.youtube, icon: YoutubeIcon, label: "YouTube" },
+                { href: contact.socials.instagram, icon: InstagramIcon, label: "Instagram" },
+                { href: contact.socials.linkedin, icon: LinkedinIcon, label: "LinkedIn" },
+                { href: contact.socials.youtube, icon: YoutubeIcon, label: "YouTube" },
               ].map((s) => (
                 <a
                   key={s.label}

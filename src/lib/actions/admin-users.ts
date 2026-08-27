@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { verifyAdminSession, requireRole } from "@/lib/auth/dal";
 import { hashPassword, generateTempPassword } from "@/lib/auth/password";
+import { logActivity } from "@/lib/audit";
 import type { AdminFormState } from "@/lib/actions/admin-courses";
 
 const ROLES = ["SUPER_ADMIN", "COUNSELLOR", "COORDINATOR", "EDITOR"] as const;
@@ -35,9 +36,10 @@ export async function createAdminUser(
   const tempPassword = generateTempPassword();
   const passwordHash = await hashPassword(tempPassword);
 
-  await db.adminUser.create({
+  const admin = await db.adminUser.create({
     data: { ...parsed.data, passwordHash },
   });
+  await logActivity(session.adminId, "admin.create", "AdminUser", admin.id, { email: admin.email, role: admin.role });
 
   revalidatePath("/admin/users");
   return { ok: true, message: `Admin created. Temporary password: ${tempPassword}` };
@@ -48,6 +50,7 @@ export async function setAdminRole(userId: string, role: (typeof ROLES)[number])
   requireRole(session, ["SUPER_ADMIN"]);
   if (session.adminId === userId) return;
   await db.adminUser.update({ where: { id: userId }, data: { role } });
+  await logActivity(session.adminId, "admin.role_change", "AdminUser", userId, { role });
   revalidatePath("/admin/users");
 }
 
@@ -59,6 +62,7 @@ export async function toggleAdminActive(userId: string) {
   const admin = await db.adminUser.findUnique({ where: { id: userId } });
   if (!admin) return;
   await db.adminUser.update({ where: { id: userId }, data: { active: !admin.active } });
+  await logActivity(session.adminId, admin.active ? "admin.deactivate" : "admin.activate", "AdminUser", userId);
   revalidatePath("/admin/users");
 }
 
@@ -67,6 +71,7 @@ export async function deleteAdminUser(userId: string) {
   requireRole(session, ["SUPER_ADMIN"]);
   if (session.adminId === userId) return;
   await db.adminUser.delete({ where: { id: userId } });
+  await logActivity(session.adminId, "admin.delete", "AdminUser", userId);
   revalidatePath("/admin/users");
 }
 
@@ -77,6 +82,7 @@ export async function resetAdminPassword(userId: string): Promise<{ tempPassword
   const tempPassword = generateTempPassword();
   const passwordHash = await hashPassword(tempPassword);
   await db.adminUser.update({ where: { id: userId }, data: { passwordHash } });
+  await logActivity(session.adminId, "admin.reset_password", "AdminUser", userId);
 
   revalidatePath("/admin/users");
   return { tempPassword };

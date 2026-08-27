@@ -190,6 +190,17 @@ export function CourseForm({
           <Checkbox name="featured" defaultChecked={course?.featured} />
           Feature on homepage
         </label>
+        <div className="space-y-1.5">
+          <Label htmlFor="featuredOrder">Featured order</Label>
+          <Input
+            id="featuredOrder"
+            name="featuredOrder"
+            type="number"
+            min={0}
+            defaultValue={course?.featuredOrder ?? 0}
+          />
+          <p className="text-xs text-muted-foreground">Lower numbers show first among featured courses.</p>
+        </div>
       </div>
 
       <SubmitButton label={submitLabel} />
