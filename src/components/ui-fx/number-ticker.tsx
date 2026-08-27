@@ -38,8 +38,17 @@ export function NumberTicker({
   }, [springValue, prefix, suffix, decimals]);
 
   return (
-    <span ref={ref} className={cn("tabular-nums", className)}>
-      {prefix}0{suffix}
-    </span>
+    <>
+      <span ref={ref} className={cn("tabular-nums print:hidden", className)}>
+        {prefix}0{suffix}
+      </span>
+      {/* Printing captures a static snapshot, so the spring animation above
+          never runs and would otherwise show the "0" starting value. */}
+      <span className={cn("tabular-nums hidden print:inline", className)}>
+        {prefix}
+        {value.toFixed(decimals)}
+        {suffix}
+      </span>
+    </>
   );
 }

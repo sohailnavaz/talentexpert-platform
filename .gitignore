@@ -36,6 +36,12 @@ yarn-error.log*
 
 # vercel
 .vercel
+.env.production.local
+
+# AI agent skill scaffolding auto-installed by marketplace integrations (e.g. Neon)
+.agents/
+.claude/
+skills-lock.json
 
 # typescript
 *.tsbuildinfo

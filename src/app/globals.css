@@ -185,3 +185,14 @@
     mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
   }
 }
+
+/* Scroll-triggered reveal animations (see components/ui-fx/reveal.tsx) never
+   fire during a static print/PDF capture, since there's no real scrolling to
+   trigger their IntersectionObserver. Force their final visible state when
+   printing so exported pages don't show frozen, invisible sections. */
+@media print {
+  .reveal-el {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
