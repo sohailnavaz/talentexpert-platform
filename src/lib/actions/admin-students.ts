@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { hashPassword, generateTempPassword } from "@/lib/auth/password";
 import { verifyAdminSession, requireRole } from "@/lib/auth/dal";
 import { sendEmail } from "@/lib/email";
+import { generateEnrollmentCode } from "@/lib/enrollment-code";
 
 export async function toggleStudentActive(studentId: string, active: boolean) {
   const session = await verifyAdminSession();
@@ -53,8 +54,7 @@ export async function manualEnrolStudent(formData: FormData) {
   const batch = await db.batch.findUnique({ where: { id: parsed.data.batchId } });
   if (!batch) return;
 
-  const count = await db.enrollment.count();
-  const code = `HT-${new Date().getFullYear().toString().slice(2)}${String(new Date().getMonth() + 1).padStart(2, "0")}-${String(count + 1).padStart(4, "0")}`;
+  const code = await generateEnrollmentCode();
 
   await db.enrollment.create({
     data: {
