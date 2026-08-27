@@ -23,6 +23,7 @@ export async function getEnrollmentForStudent(studentId: string, enrollmentId: s
         },
       },
       testAttempts: { orderBy: { completedAt: "desc" } },
+      attendances: true,
     },
   });
 }

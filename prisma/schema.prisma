@@ -29,29 +29,31 @@ model AdminUser {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  activityLogs ActivityLog[]
+  activityLogs  ActivityLog[]
+  batchMessages BatchMessage[]
 }
 
 model Student {
-  id                String    @id @default(cuid())
-  name              String
-  email             String    @unique
-  phone             String
-  whatsapp          String?
-  passwordHash      String
+  id                 String   @id @default(cuid())
+  name               String
+  email              String   @unique
+  phone              String
+  whatsapp           String?
+  passwordHash       String
   mustChangePassword Boolean  @default(true)
-  avatarUrl         String?
-  bio               String?
-  active            Boolean   @default(true)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  avatarUrl          String?
+  bio                String?
+  active             Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  enrollments       Enrollment[]
-  payments          Payment[]
-  leads             Lead[]
-  jobApplications   JobApplication[]
-  badges            StudentBadge[]
-  reviews           Review[]
+  enrollments     Enrollment[]
+  payments        Payment[]
+  leads           Lead[]
+  jobApplications JobApplication[]
+  badges          StudentBadge[]
+  reviews         Review[]
+  messages        BatchMessage[]
 
   @@index([email])
 }
@@ -80,79 +82,86 @@ model Category {
   slug      String   @unique
   createdAt DateTime @default(now())
 
-  courses   Course[]
+  courses Course[]
 }
 
 model Trainer {
-  id             String   @id @default(cuid())
-  name           String
-  slug           String   @unique
-  photoUrl       String?
-  bio            String?
-  experienceYears Int?
-  expertise      String[] @default([])
-  active         Boolean  @default(true)
-  createdAt      DateTime @default(now())
+  id                 String   @id @default(cuid())
+  name               String
+  slug               String   @unique
+  photoUrl           String?
+  bio                String?
+  experienceYears    Int?
+  expertise          String[] @default([])
+  active             Boolean  @default(true)
+  email              String?  @unique
+  passwordHash       String?
+  mustChangePassword Boolean  @default(true)
+  createdAt          DateTime @default(now())
 
-  courses        Course[]
-  batches        Batch[]
+  courses  Course[]
+  batches  Batch[]
+  messages BatchMessage[]
+
+  @@index([email])
 }
 
 model Course {
-  id               String       @id @default(cuid())
+  id               String         @id @default(cuid())
   title            String
-  slug             String       @unique
+  slug             String         @unique
   shortDescription String
-  description      String       @db.Text
+  description      String         @db.Text
   categoryId       String?
-  category         Category?    @relation(fields: [categoryId], references: [id])
+  category         Category?      @relation(fields: [categoryId], references: [id])
   thumbnailUrl     String?
   brochureUrl      String?
   modes            DeliveryMode[] @default([])
   level            String?
   durationText     String?
-  regularFee       Decimal      @db.Decimal(10, 2)
+  regularFee       Decimal        @db.Decimal(10, 2)
   trainerId        String?
-  trainer          Trainer?     @relation(fields: [trainerId], references: [id])
-  highlights       String[]     @default([])
+  trainer          Trainer?       @relation(fields: [trainerId], references: [id])
+  highlights       String[]       @default([])
   faqs             Json?
-  status           CourseStatus @default(DRAFT)
-  featured         Boolean      @default(false)
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  status           CourseStatus   @default(DRAFT)
+  featured         Boolean        @default(false)
+  featuredOrder    Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
-  modules          CourseModule[]
-  batches          Batch[]
-  leads            Lead[]
-  reviews          Review[]
+  modules CourseModule[]
+  batches Batch[]
+  leads   Lead[]
+  reviews Review[]
 
   @@index([status])
   @@index([slug])
 }
 
 model Review {
-  id        String   @id @default(cuid())
-  courseId  String
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  studentId String?
-  student   Student? @relation(fields: [studentId], references: [id])
+  id         String   @id @default(cuid())
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  studentId  String?
+  student    Student? @relation(fields: [studentId], references: [id])
   authorName String
-  rating    Int
-  comment   String   @db.Text
-  hidden    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  rating     Int
+  comment    String   @db.Text
+  hidden     Boolean  @default(false)
+  createdAt  DateTime @default(now())
 
   @@index([courseId])
 }
 
 model CourseModule {
-  id        String   @id @default(cuid())
-  courseId  String
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  title     String
-  order     Int      @default(0)
+  id       String @id @default(cuid())
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title    String
+  order    Int    @default(0)
 
-  topics    CourseTopic[]
+  topics CourseTopic[]
 
   @@index([courseId])
 }
@@ -178,27 +187,28 @@ enum BatchStatus {
 }
 
 model Batch {
-  id            String      @id @default(cuid())
+  id            String       @id @default(cuid())
   courseId      String
-  course        Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course        Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
   startDate     DateTime
   startTime     String
   mode          DeliveryMode
   trainerId     String?
-  trainer       Trainer?    @relation(fields: [trainerId], references: [id])
+  trainer       Trainer?     @relation(fields: [trainerId], references: [id])
   durationText  String?
-  seatTotal     Int         @default(30)
-  seatsFilled   Int         @default(0)
-  fee           Decimal     @db.Decimal(10, 2)
+  seatTotal     Int          @default(30)
+  seatsFilled   Int          @default(0)
+  fee           Decimal      @db.Decimal(10, 2)
   contactNumber String?
-  status        BatchStatus @default(UPCOMING)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  status        BatchStatus  @default(UPCOMING)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
-  offers        Offer[]
-  enrollments   Enrollment[]
-  sessions      ClassSession[]
-  materials     Material[]
+  offers      Offer[]
+  enrollments Enrollment[]
+  sessions    ClassSession[]
+  materials   Material[]
+  messages    BatchMessage[]
 
   @@index([courseId])
   @@index([status])
@@ -209,7 +219,7 @@ model Offer {
   batchId   String
   batch     Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
   label     String
-  type      String   // PERCENT | FLAT
+  type      String // PERCENT | FLAT
   value     Decimal  @db.Decimal(10, 2)
   startAt   DateTime
   endAt     DateTime
@@ -219,15 +229,15 @@ model Offer {
 }
 
 model Coupon {
-  id          String    @id @default(cuid())
-  code        String    @unique
-  type        String    // PERCENT | FLAT
-  value       Decimal   @db.Decimal(10, 2)
-  expiresAt   DateTime?
-  usageLimit  Int?
-  usedCount   Int       @default(0)
-  active      Boolean   @default(true)
-  createdAt   DateTime  @default(now())
+  id         String    @id @default(cuid())
+  code       String    @unique
+  type       String // PERCENT | FLAT
+  value      Decimal   @db.Decimal(10, 2)
+  expiresAt  DateTime?
+  usageLimit Int?
+  usedCount  Int       @default(0)
+  active     Boolean   @default(true)
+  createdAt  DateTime  @default(now())
 
   enrollments Enrollment[]
 }
@@ -244,26 +254,27 @@ enum EnrollmentStatus {
 }
 
 model Enrollment {
-  id               String           @id @default(cuid())
-  enrollmentCode   String?          @unique
-  studentId        String
-  student          Student          @relation(fields: [studentId], references: [id])
-  batchId          String
-  batch            Batch            @relation(fields: [batchId], references: [id])
-  amountDue        Decimal          @db.Decimal(10, 2)
-  amountPaid       Decimal          @db.Decimal(10, 2) @default(0)
-  discountAmount   Decimal          @db.Decimal(10, 2) @default(0)
-  couponId         String?
-  coupon           Coupon?          @relation(fields: [couponId], references: [id])
-  status           EnrollmentStatus @default(PENDING)
-  portalUnlocked   Boolean          @default(false)
-  hoursLogged      Decimal          @db.Decimal(6, 1) @default(0)
-  completedAt      DateTime?
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  id             String           @id @default(cuid())
+  enrollmentCode String?          @unique
+  studentId      String
+  student        Student          @relation(fields: [studentId], references: [id])
+  batchId        String
+  batch          Batch            @relation(fields: [batchId], references: [id])
+  amountDue      Decimal          @db.Decimal(10, 2)
+  amountPaid     Decimal          @default(0) @db.Decimal(10, 2)
+  discountAmount Decimal          @default(0) @db.Decimal(10, 2)
+  couponId       String?
+  coupon         Coupon?          @relation(fields: [couponId], references: [id])
+  status         EnrollmentStatus @default(PENDING)
+  portalUnlocked Boolean          @default(false)
+  hoursLogged    Decimal          @default(0) @db.Decimal(6, 1)
+  completedAt    DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
-  payments         Payment[]
-  testAttempts     TestAttempt[]
+  payments     Payment[]
+  testAttempts TestAttempt[]
+  attendances  Attendance[]
 
   @@index([studentId])
   @@index([batchId])
@@ -342,14 +353,17 @@ model Payment {
 // ---------------------------------------------------------------------------
 
 model ClassSession {
-  id        String   @id @default(cuid())
-  batchId   String
-  batch     Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  topic     String
-  date      DateTime
-  time      String
-  joinUrl   String
-  createdAt DateTime @default(now())
+  id             String    @id @default(cuid())
+  batchId        String
+  batch          Batch     @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  topic          String
+  date           DateTime
+  time           String
+  joinUrl        String
+  reminderSentAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  attendances Attendance[]
 
   @@index([batchId])
 }
@@ -361,6 +375,43 @@ model Material {
   title     String
   fileUrl   String
   createdAt DateTime @default(now())
+
+  @@index([batchId])
+}
+
+model Attendance {
+  id             String       @id @default(cuid())
+  classSessionId String
+  classSession   ClassSession @relation(fields: [classSessionId], references: [id], onDelete: Cascade)
+  enrollmentId   String
+  enrollment     Enrollment   @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  present        Boolean      @default(false)
+  markedAt       DateTime     @default(now())
+
+  @@unique([classSessionId, enrollmentId])
+  @@index([classSessionId])
+  @@index([enrollmentId])
+}
+
+enum MessageAuthorRole {
+  STUDENT
+  TRAINER
+  ADMIN
+}
+
+model BatchMessage {
+  id         String            @id @default(cuid())
+  batchId    String
+  batch      Batch             @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  authorRole MessageAuthorRole
+  studentId  String?
+  student    Student?          @relation(fields: [studentId], references: [id])
+  trainerId  String?
+  trainer    Trainer?          @relation(fields: [trainerId], references: [id])
+  adminId    String?
+  admin      AdminUser?        @relation(fields: [adminId], references: [id])
+  body       String            @db.Text
+  createdAt  DateTime          @default(now())
 
   @@index([batchId])
 }
@@ -413,14 +464,14 @@ model Lead {
 }
 
 model JobOpening {
-  id         String   @id @default(cuid())
-  title      String
-  company    String   @default("Talent Expert")
-  location   String
-  experience String
-  description String  @db.Text
-  active     Boolean  @default(true)
-  createdAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  title       String
+  company     String   @default("Talent Expert")
+  location    String
+  experience  String
+  description String   @db.Text
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
 
   applications JobApplication[]
 }
@@ -446,18 +497,18 @@ enum PostStatus {
 }
 
 model BlogPost {
-  id             String     @id @default(cuid())
-  title          String
-  slug           String     @unique
-  excerpt        String
-  content        String     @db.Text
-  coverImageUrl  String?
-  category       String?
-  authorName     String     @default("Talent Expert Team")
-  status         PostStatus @default(DRAFT)
-  publishedAt    DateTime?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  id            String     @id @default(cuid())
+  title         String
+  slug          String     @unique
+  excerpt       String
+  content       String     @db.Text
+  coverImageUrl String?
+  category      String?
+  authorName    String     @default("Talent Expert Team")
+  status        PostStatus @default(DRAFT)
+  publishedAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   @@index([status])
   @@index([slug])
@@ -475,15 +526,15 @@ model Testimonial {
 }
 
 model Placement {
-  id          String   @id @default(cuid())
-  studentName String
-  company     String
-  role        String
-  photoUrl    String?
+  id             String   @id @default(cuid())
+  studentName    String
+  company        String
+  role           String
+  photoUrl       String?
   companyLogoUrl String?
-  batch       String?
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  batch          String?
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
 }
 
 model ContentBlock {
@@ -493,14 +544,14 @@ model ContentBlock {
 }
 
 model ActivityLog {
-  id        String    @id @default(cuid())
-  actorId   String?
-  actor     AdminUser? @relation(fields: [actorId], references: [id])
-  action    String
+  id         String     @id @default(cuid())
+  actorId    String?
+  actor      AdminUser? @relation(fields: [actorId], references: [id])
+  action     String
   entityType String
-  entityId  String?
-  meta      Json?
-  createdAt DateTime  @default(now())
+  entityId   String?
+  meta       Json?
+  createdAt  DateTime   @default(now())
 
   @@index([entityType, entityId])
 }

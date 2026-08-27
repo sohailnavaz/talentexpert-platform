@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { getAdminSession, getStudentSession } from "./session";
+import { getAdminSession, getStudentSession, getTrainerSession } from "./session";
 
 export const verifyStudentSession = cache(async () => {
   const session = await getStudentSession();
@@ -30,6 +30,20 @@ export const getCurrentAdmin = cache(async () => {
   const admin = await db.adminUser.findUnique({ where: { id: session.adminId } });
   if (!admin || !admin.active) return null;
   return admin;
+});
+
+export const verifyTrainerSession = cache(async () => {
+  const session = await getTrainerSession();
+  if (!session) redirect("/trainer/login");
+  return session;
+});
+
+export const getCurrentTrainer = cache(async () => {
+  const session = await getTrainerSession();
+  if (!session) return null;
+  const trainer = await db.trainer.findUnique({ where: { id: session.trainerId } });
+  if (!trainer || !trainer.active) return null;
+  return trainer;
 });
 
 export function requireRole(

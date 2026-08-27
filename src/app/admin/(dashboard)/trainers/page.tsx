@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
+import { TrainerResetPasswordButton } from "@/components/admin/trainer-reset-password-button";
 import { deleteTrainer } from "@/lib/actions/admin-trainers";
 
 export const metadata: Metadata = { title: "Trainers" };
@@ -43,6 +44,7 @@ export default async function AdminTrainersPage() {
               <TableHead>Experience</TableHead>
               <TableHead>Courses</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Portal access</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -54,6 +56,16 @@ export default async function AdminTrainersPage() {
                 <TableCell>{t._count.courses}</TableCell>
                 <TableCell>
                   <Badge variant={t.active ? "default" : "secondary"}>{t.active ? "Active" : "Inactive"}</Badge>
+                </TableCell>
+                <TableCell>
+                  {t.email ? (
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">{t.email}</Badge>
+                      <TrainerResetPasswordButton trainerId={t.id} />
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">No portal access</span>
+                  )}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
@@ -70,7 +82,7 @@ export default async function AdminTrainersPage() {
             ))}
             {trainers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
                   No trainers yet.
                 </TableCell>
               </TableRow>

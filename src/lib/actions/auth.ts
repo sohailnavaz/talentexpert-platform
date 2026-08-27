@@ -9,8 +9,10 @@ import { sendEmail } from "@/lib/email";
 import {
   createAdminSession,
   createStudentSession,
+  createTrainerSession,
   destroyAdminSession,
   destroyStudentSession,
+  destroyTrainerSession,
 } from "@/lib/auth/session";
 
 const credentialsSchema = z.object({
@@ -89,6 +91,37 @@ export async function loginAdmin(
 export async function logoutAdmin() {
   await destroyAdminSession();
   redirect("/admin/login");
+}
+
+export async function loginTrainer(
+  _prev: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  const parsed = credentialsSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+  });
+  if (!parsed.success) {
+    return { ok: false, message: "Enter a valid email and password." };
+  }
+
+  const trainer = await db.trainer.findUnique({ where: { email: parsed.data.email } });
+  if (!trainer || !trainer.active || !trainer.passwordHash) {
+    return { ok: false, message: "We couldn't find an account with those details." };
+  }
+
+  const valid = await verifyPassword(parsed.data.password, trainer.passwordHash);
+  if (!valid) {
+    return { ok: false, message: "Incorrect email or password." };
+  }
+
+  await createTrainerSession({ trainerId: trainer.id, name: trainer.name, email: parsed.data.email });
+  redirect("/trainer");
+}
+
+export async function logoutTrainer() {
+  await destroyTrainerSession();
+  redirect("/trainer/login");
 }
 
 const emailSchema = z.object({ email: z.email("Enter a valid email") });

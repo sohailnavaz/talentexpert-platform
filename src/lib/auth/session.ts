@@ -23,8 +23,16 @@ export type AdminSessionPayload = {
   role: "SUPER_ADMIN" | "COUNSELLOR" | "COORDINATOR" | "EDITOR";
 };
 
+export type TrainerSessionPayload = {
+  kind: "trainer";
+  trainerId: string;
+  name: string;
+  email: string;
+};
+
 const STUDENT_COOKIE = "te_student_session";
 const ADMIN_COOKIE = "te_admin_session";
+const TRAINER_COOKIE = "te_trainer_session";
 const SESSION_TTL_DAYS = 14;
 
 async function encrypt(payload: Record<string, unknown>) {
@@ -68,6 +76,11 @@ export async function createAdminSession(payload: Omit<AdminSessionPayload, "kin
   await setSessionCookie(ADMIN_COOKIE, token);
 }
 
+export async function createTrainerSession(payload: Omit<TrainerSessionPayload, "kind">) {
+  const token = await encrypt({ kind: "trainer", ...payload });
+  await setSessionCookie(TRAINER_COOKIE, token);
+}
+
 export async function getStudentSession(): Promise<StudentSessionPayload | null> {
   const cookieStore = await cookies();
   return decrypt<StudentSessionPayload>(cookieStore.get(STUDENT_COOKIE)?.value);
@@ -78,6 +91,11 @@ export async function getAdminSession(): Promise<AdminSessionPayload | null> {
   return decrypt<AdminSessionPayload>(cookieStore.get(ADMIN_COOKIE)?.value);
 }
 
+export async function getTrainerSession(): Promise<TrainerSessionPayload | null> {
+  const cookieStore = await cookies();
+  return decrypt<TrainerSessionPayload>(cookieStore.get(TRAINER_COOKIE)?.value);
+}
+
 export async function destroyStudentSession() {
   const cookieStore = await cookies();
   cookieStore.delete(STUDENT_COOKIE);
@@ -86,4 +104,9 @@ export async function destroyStudentSession() {
 export async function destroyAdminSession() {
   const cookieStore = await cookies();
   cookieStore.delete(ADMIN_COOKIE);
+}
+
+export async function destroyTrainerSession() {
+  const cookieStore = await cookies();
+  cookieStore.delete(TRAINER_COOKIE);
 }

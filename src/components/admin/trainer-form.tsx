@@ -44,6 +44,15 @@ export function TrainerForm({
         <Input id="name" name="name" defaultValue={trainer?.name} required />
       </div>
       <div className="space-y-1.5">
+        <Label htmlFor="email">Portal login email (optional)</Label>
+        <Input id="email" name="email" type="email" defaultValue={trainer?.email ?? ""} placeholder="trainer@talentexpertedu.com" />
+        <p className="text-xs text-muted-foreground">
+          {trainer?.email
+            ? "Trainer already has portal access. Clear this field to revoke it."
+            : "Setting an email grants trainer-portal access and emails a temporary password."}
+        </p>
+      </div>
+      <div className="space-y-1.5">
         <Label htmlFor="bio">Bio</Label>
         <Textarea id="bio" name="bio" rows={4} defaultValue={trainer?.bio ?? ""} />
       </div>
