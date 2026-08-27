@@ -2,6 +2,8 @@
 
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { getSiteContactInfo } from "@/lib/site-settings";
 
 const leadSchema = z.object({
   name: z.string().trim().min(2, "Please enter your name"),
@@ -54,6 +56,12 @@ export async function submitLead(
       sourcePage,
     },
   });
+
+  const contact = await getSiteContactInfo();
+  await sendWhatsAppMessage(
+    contact.whatsappNumber,
+    `New enquiry: ${name} (${phone})${courseInterest ? ` — interested in ${courseInterest}` : ""}. Email: ${email}${message ? `\nMessage: ${message}` : ""}`
+  );
 
   return { ok: true, message: "Thanks! Our team will reach out to you shortly." };
 }

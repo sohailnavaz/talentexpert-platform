@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Download } from "lucide-react";
 import { db } from "@/lib/db";
 import {
   Table,
@@ -8,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
 import { LeadStatusSelect } from "@/components/admin/lead-status-select";
 
@@ -21,9 +23,14 @@ export default async function AdminLeadsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl font-bold">Leads / Enquiries</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{leads.length} shown (most recent 300)</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-heading text-2xl font-bold">Leads / Enquiries</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{leads.length} shown (most recent 300)</p>
+        </div>
+        <Button variant="outline" render={<a href="/api/admin/leads/export" />} nativeButton={false}>
+          <Download className="h-4 w-4" /> Export CSV
+        </Button>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">
