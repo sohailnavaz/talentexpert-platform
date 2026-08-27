@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getTrainerBySlug } from "@/lib/data/content";
 import { CourseCard } from "@/components/site/course-card";
 import { SectionHeading } from "@/components/site/section-heading";
+import { BrandWatermark } from "@/components/site/brand-watermark";
 
 export async function generateMetadata({
   params,
@@ -28,7 +29,7 @@ export default async function TrainerDetailPage({
   return (
     <>
       <section className="relative overflow-hidden bg-brand-navy text-white">
-        <div className="absolute inset-0 bg-grid opacity-[0.12]" />
+        <BrandWatermark />
         <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-5 px-4 py-16 text-center sm:px-6 lg:px-8">
           <div className="relative h-28 w-28 overflow-hidden rounded-full border-4 border-white/10 bg-white/10">
             {trainer.photoUrl ? (

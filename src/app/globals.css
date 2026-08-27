@@ -55,11 +55,7 @@
 
   --animate-marquee: marquee 32s linear infinite;
   --animate-marquee-vertical: marquee-vertical 32s linear infinite;
-  --animate-shimmer: shimmer 2.4s linear infinite;
-  --animate-meteor: meteor 5s linear infinite;
   --animate-float: float 6s ease-in-out infinite;
-  --animate-gradient-move: gradient-move 8s ease infinite;
-  --animate-spotlight: spotlight 2s ease .5s 1 forwards;
 
   @keyframes marquee {
     from { transform: translateX(0); }
@@ -69,26 +65,9 @@
     from { transform: translateY(0); }
     to { transform: translateY(calc(-50% - var(--gap, 1rem) / 2)); }
   }
-  @keyframes shimmer {
-    from { background-position: 0 0; }
-    to { background-position: -200% 0; }
-  }
-  @keyframes meteor {
-    0% { transform: rotate(215deg) translateX(0); opacity: 1; }
-    70% { opacity: 1; }
-    100% { transform: rotate(215deg) translateX(-500px); opacity: 0; }
-  }
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-12px); }
-  }
-  @keyframes gradient-move {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-  @keyframes spotlight {
-    0% { opacity: 0; transform: translate(-72%, -62%) scale(0.5); }
-    100% { opacity: 1; transform: translate(-50%, -40%) scale(1); }
   }
 }
 
@@ -198,12 +177,6 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
-  }
-  .bg-grid {
-    background-image:
-      linear-gradient(to right, color-mix(in oklch, var(--foreground) 6%, transparent) 1px, transparent 1px),
-      linear-gradient(to bottom, color-mix(in oklch, var(--foreground) 6%, transparent) 1px, transparent 1px);
-    background-size: 40px 40px;
   }
   .mask-fade-x {
     mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);

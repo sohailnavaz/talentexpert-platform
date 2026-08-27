@@ -18,6 +18,7 @@ import { EnquiryDialog } from "@/components/site/enquiry-dialog";
 import { SectionHeading } from "@/components/site/section-heading";
 import { ReviewForm } from "@/components/site/review-form";
 import { ReviewList, ReviewStarsAverage } from "@/components/site/review-summary";
+import { BrandWatermark } from "@/components/site/brand-watermark";
 import { formatINR, modeLabels } from "@/lib/format";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -87,7 +88,7 @@ export default async function CourseDetailPage({
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <section className="relative overflow-hidden bg-brand-navy text-white">
-        <div className="absolute inset-0 bg-grid opacity-[0.12]" />
+        <BrandWatermark />
         <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1.4fr_1fr] lg:px-8">
           <div>
             {course.category ? (
