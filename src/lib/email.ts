@@ -17,5 +17,8 @@ export async function sendEmail({
     console.log(`[email:dev-mode] to=${to} subject="${subject}"\n${html}`);
     return;
   }
-  await resend.emails.send({ from, to, subject, html });
+  const { error } = await resend.emails.send({ from, to, subject, html });
+  if (error) {
+    console.error(`[email:failed] to=${to} subject="${subject}" — ${error.name}: ${error.message}`);
+  }
 }
