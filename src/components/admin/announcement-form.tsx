@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -72,6 +73,16 @@ export function AnnouncementForm() {
           <Label htmlFor="endAt">Ends (optional)</Label>
           <Input id="endAt" name="endAt" type="date" />
         </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="priority">Priority (0–10, higher shows first)</Label>
+        <Input id="priority" name="priority" type="number" min={0} max={10} defaultValue={0} className="max-w-[8rem]" />
+      </div>
+      <div className="flex items-center gap-2">
+        <Checkbox id="showPopup" name="showPopup" />
+        <Label htmlFor="showPopup" className="font-normal">
+          Show as a popup alert (not just the banner)
+        </Label>
       </div>
       <SubmitButton />
     </form>

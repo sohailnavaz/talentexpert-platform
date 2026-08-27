@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { CredentialsForm } from "@/components/auth/credentials-form";
@@ -16,8 +17,14 @@ export default function TrainerLoginPage() {
             Sign in to manage your batches, attendance and student messages.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <CredentialsForm action={loginTrainer} submitLabel="Sign in to trainer portal" />
+          <p className="text-center text-sm text-white/50">
+            First time here?{" "}
+            <Link href="/trainer/verify" className="text-primary underline underline-offset-4">
+              Verify your email
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </AuthShell>

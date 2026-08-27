@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getActiveAnnouncements } from "@/lib/data/announcements";
 
 export async function getStudentEnrollments(studentId: string) {
   return db.enrollment.findMany({
@@ -46,17 +47,7 @@ export async function getNextSessionForStudent(studentId: string) {
 }
 
 export async function getPortalAnnouncements() {
-  const now = new Date();
-  return db.announcement.findMany({
-    where: {
-      active: true,
-      audience: { in: ["PORTAL", "BOTH"] },
-      startAt: { lte: now },
-      OR: [{ endAt: null }, { endAt: { gte: now } }],
-    },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-  });
+  return getActiveAnnouncements("PORTAL", { take: 5 });
 }
 
 export async function getStudentPayments(studentId: string) {

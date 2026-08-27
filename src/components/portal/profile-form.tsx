@@ -5,10 +5,23 @@ import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { updateProfile } from "@/lib/actions/profile";
 import type { AuthFormState } from "@/lib/actions/auth";
+
+const GENDER_OPTIONS = {
+  MALE: "Male",
+  FEMALE: "Female",
+  OTHER: "Other",
+  PREFER_NOT_TO_SAY: "Prefer not to say",
+};
 
 const initialState: AuthFormState = { ok: true };
 
@@ -25,12 +38,14 @@ export function ProfileForm({
   name,
   phone,
   whatsapp,
-  bio,
+  age,
+  gender,
 }: {
   name: string;
   phone: string;
   whatsapp: string | null;
-  bio: string | null;
+  age: number | null;
+  gender: string | null;
 }) {
   const [state, formAction] = useActionState(updateProfile, initialState);
 
@@ -56,9 +71,26 @@ export function ProfileForm({
         <Label htmlFor="whatsapp">WhatsApp number (optional)</Label>
         <Input id="whatsapp" name="whatsapp" defaultValue={whatsapp ?? ""} />
       </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="bio">Bio</Label>
-        <Textarea id="bio" name="bio" defaultValue={bio ?? ""} rows={3} maxLength={280} placeholder="A short line about your goals" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="age">Age (optional)</Label>
+          <Input id="age" name="age" type="number" min={10} max={100} defaultValue={age ?? ""} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="gender">Gender (optional)</Label>
+          <Select name="gender" defaultValue={gender ?? undefined} items={GENDER_OPTIONS}>
+            <SelectTrigger id="gender" className="w-full">
+              <SelectValue placeholder="Select..." />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(GENDER_OPTIONS).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <SubmitButton />
     </form>

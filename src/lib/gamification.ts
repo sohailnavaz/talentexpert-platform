@@ -34,19 +34,48 @@ type BadgeCriteria =
   | { type: "hoursLogged"; threshold: number }
   | { type: "testsPassed"; threshold: number };
 
-function meetsCriteria(criteria: BadgeCriteria, stats: StudentStats) {
+function progressForCriteria(criteria: BadgeCriteria, stats: StudentStats) {
+  const threshold = criteria.threshold;
   switch (criteria.type) {
     case "enrollmentsCount":
-      return stats.coursesEnrolled >= criteria.threshold;
+      return { current: stats.coursesEnrolled, threshold };
     case "coursesCompleted":
-      return stats.coursesCompleted >= criteria.threshold;
+      return { current: stats.coursesCompleted, threshold };
     case "hoursLogged":
-      return stats.hoursLogged >= criteria.threshold;
+      return { current: stats.hoursLogged, threshold };
     case "testsPassed":
-      return stats.testsPassed >= criteria.threshold;
+      return { current: stats.testsPassed, threshold };
     default:
-      return false;
+      return { current: 0, threshold };
   }
+}
+
+function meetsCriteria(criteria: BadgeCriteria, stats: StudentStats) {
+  const { current, threshold } = progressForCriteria(criteria, stats);
+  return current >= threshold;
+}
+
+export type Level = { name: string; minPoints: number };
+
+export const LEVELS: Level[] = [
+  { name: "Newcomer", minPoints: 0 },
+  { name: "Rising Star", minPoints: 20 },
+  { name: "Achiever", minPoints: 60 },
+  { name: "Expert", minPoints: 100 },
+  { name: "Legend", minPoints: 150 },
+];
+
+export function getLevelProgress(totalPoints: number) {
+  let level = LEVELS[0];
+  let nextLevel: Level | null = null;
+  for (let i = 0; i < LEVELS.length; i++) {
+    if (totalPoints >= LEVELS[i].minPoints) {
+      level = LEVELS[i];
+      nextLevel = LEVELS[i + 1] ?? null;
+    }
+  }
+  const pointsToNext = nextLevel ? nextLevel.minPoints - totalPoints : 0;
+  return { level, nextLevel, pointsToNext };
 }
 
 export async function evaluateAndAwardBadges(studentId: string) {
@@ -71,16 +100,21 @@ export async function evaluateAndAwardBadges(studentId: string) {
   return { stats, newlyAwarded: toAward };
 }
 
-export async function getStudentBadgeBoard(studentId: string) {
+export async function getStudentBadgeBoard(studentId: string, stats: StudentStats) {
   const [allBadges, earned] = await Promise.all([
     db.badge.findMany({ orderBy: { createdAt: "asc" } }),
     db.studentBadge.findMany({ where: { studentId } }),
   ]);
   const earnedMap = new Map(earned.map((e) => [e.badgeId, e.earnedAt]));
 
-  return allBadges.map((b) => ({
-    ...b,
-    earned: earnedMap.has(b.id),
-    earnedAt: earnedMap.get(b.id) ?? null,
-  }));
+  return allBadges.map((b) => {
+    const { current, threshold } = progressForCriteria(b.criteria as unknown as BadgeCriteria, stats);
+    return {
+      ...b,
+      earned: earnedMap.has(b.id),
+      earnedAt: earnedMap.get(b.id) ?? null,
+      current,
+      threshold,
+    };
+  });
 }

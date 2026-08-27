@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, Download, FileText, MessageSquare, Users } from "lucide-react";
+import { CalendarDays, Download, FileText, MessageSquare, Users, Video } from "lucide-react";
 import { verifyTrainerSession } from "@/lib/auth/dal";
 import { getAttendanceForBatch, getBatchForTrainer } from "@/lib/data/trainer-portal";
 import { getBatchMessages, postTrainerBatchMessage } from "@/lib/actions/batch-messages";
 import { saveAttendance } from "@/lib/actions/attendance";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
@@ -65,6 +67,14 @@ export default async function TrainerBatchPage({
                       {s.topic} — {formatDate(s.date)}
                     </AccordionTrigger>
                     <AccordionContent>
+                      <Button
+                        render={<Link href={`/trainer/batches/${batch.id}/live/${s.id}`} />}
+                        nativeButton={false}
+                        size="sm"
+                        className="mb-3"
+                      >
+                        <Video className="h-3.5 w-3.5" /> Start / join class
+                      </Button>
                       <AttendanceForm
                         action={saveAttendance.bind(null, s.id, `/trainer/batches/${batch.id}`)}
                         students={batch.enrollments.map((e) => ({
@@ -86,7 +96,7 @@ export default async function TrainerBatchPage({
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">Message your students. Everyone enrolled can see this thread.</p>
             <div className="mt-3">
-              <BatchMessageThread messages={messages} postAction={postMessage} viewerRole="TRAINER" />
+              <BatchMessageThread batchId={batch.id} initialMessages={messages} postAction={postMessage} viewerRole="TRAINER" />
             </div>
           </section>
         </div>

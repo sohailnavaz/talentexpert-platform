@@ -4,8 +4,30 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getStudentSession, getTrainerSession, getAdminSession } from "@/lib/auth/session";
 
-export async function getBatchMessages(batchId: string) {
-  return db.batchMessage.findMany({
+export type BatchMessageEvent = {
+  id: string;
+  authorRole: "STUDENT" | "TRAINER" | "ADMIN";
+  authorName: string;
+  body: string;
+  createdAt: string;
+};
+
+export async function authorizeStudentBatchAccess(batchId: string, studentId: string) {
+  const enrollment = await db.enrollment.findFirst({
+    where: { batchId, studentId, status: "PAID" },
+  });
+  return Boolean(enrollment);
+}
+
+export async function authorizeTrainerBatchAccess(batchId: string, trainerId: string) {
+  const batch = await db.batch.findFirst({ where: { id: batchId, trainerId } });
+  return Boolean(batch);
+}
+
+const ROLE_LABEL = { STUDENT: "Student", TRAINER: "Trainer", ADMIN: "Talent Expert Team" } as const;
+
+export async function getBatchMessages(batchId: string): Promise<BatchMessageEvent[]> {
+  const messages = await db.batchMessage.findMany({
     where: { batchId },
     orderBy: { createdAt: "asc" },
     include: {
@@ -14,6 +36,14 @@ export async function getBatchMessages(batchId: string) {
       admin: { select: { name: true } },
     },
   });
+
+  return messages.map((m) => ({
+    id: m.id,
+    authorRole: m.authorRole,
+    authorName: m.student?.name ?? m.trainer?.name ?? m.admin?.name ?? ROLE_LABEL[m.authorRole],
+    body: m.body,
+    createdAt: m.createdAt.toISOString(),
+  }));
 }
 
 export async function postStudentBatchMessage(
@@ -23,11 +53,7 @@ export async function postStudentBatchMessage(
 ) {
   const session = await getStudentSession();
   if (!session) return;
-
-  const enrollment = await db.enrollment.findFirst({
-    where: { batchId, studentId: session.studentId, status: "PAID" },
-  });
-  if (!enrollment) return;
+  if (!(await authorizeStudentBatchAccess(batchId, session.studentId))) return;
 
   const body = String(formData.get("body") ?? "").trim();
   if (!body) return;
@@ -45,9 +71,7 @@ export async function postTrainerBatchMessage(
 ) {
   const session = await getTrainerSession();
   if (!session) return;
-
-  const batch = await db.batch.findFirst({ where: { id: batchId, trainerId: session.trainerId } });
-  if (!batch) return;
+  if (!(await authorizeTrainerBatchAccess(batchId, session.trainerId))) return;
 
   const body = String(formData.get("body") ?? "").trim();
   if (!body) return;

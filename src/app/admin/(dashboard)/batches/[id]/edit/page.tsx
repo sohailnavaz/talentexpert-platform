@@ -74,6 +74,7 @@ export default async function EditBatchPage({
             batchId={batch.id}
             sessions={batch.sessions.map((s) => ({ ...s, date: s.date.toISOString() }))}
             materials={batch.materials}
+            dailyEnabled={Boolean(process.env.DAILY_API_KEY)}
           />
         </div>
       </div>

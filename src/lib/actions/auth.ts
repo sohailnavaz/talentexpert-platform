@@ -13,8 +13,10 @@ import {
   destroyAdminSession,
   destroyStudentSession,
   destroyTrainerSession,
+  getStudentSession,
 } from "@/lib/auth/session";
 import { isRateLimited, recordFailedAttempt, clearAttempts } from "@/lib/rate-limit";
+import { sendVerificationEmail } from "@/lib/actions/signup";
 
 const RATE_LIMIT_MESSAGE = "Too many attempts. Please wait a few minutes and try again.";
 
@@ -214,4 +216,113 @@ export async function resetPassword(
   });
 
   return { ok: true, message: "Password updated. You can now sign in." };
+}
+
+const trainerOtpSchema = z.object({
+  email: z.email("Enter a valid email"),
+  otp: z.string().trim().length(6, "Enter the 6-digit code sent to your email"),
+});
+
+async function findValidTrainerOtp(email: string, otp: string) {
+  const trainer = await db.trainer.findUnique({ where: { email } });
+  if (!trainer || !trainer.otpHash || !trainer.otpExpiresAt || trainer.otpExpiresAt < new Date()) {
+    return null;
+  }
+  const valid = await verifyPassword(otp, trainer.otpHash);
+  return valid ? trainer : null;
+}
+
+export async function verifyTrainerOtp(
+  _prev: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  const parsed = trainerOtpSchema.safeParse({
+    email: formData.get("email"),
+    otp: formData.get("otp"),
+  });
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Please check your details." };
+  }
+
+  const rateLimitKey = `trainer-otp:${parsed.data.email.toLowerCase()}`;
+  if (isRateLimited(rateLimitKey)) {
+    return { ok: false, message: RATE_LIMIT_MESSAGE };
+  }
+
+  const trainer = await findValidTrainerOtp(parsed.data.email, parsed.data.otp);
+  if (!trainer) {
+    recordFailedAttempt(rateLimitKey);
+    return { ok: false, message: "That code is invalid or has expired." };
+  }
+
+  clearAttempts(rateLimitKey);
+  return { ok: true, message: "Email verified. Set your password to continue." };
+}
+
+const setTrainerPasswordSchema = z.object({
+  email: z.email("Enter a valid email"),
+  otp: z.string().trim().length(6, "Enter the 6-digit code sent to your email"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+export async function setTrainerPassword(
+  _prev: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  const parsed = setTrainerPasswordSchema.safeParse({
+    email: formData.get("email"),
+    otp: formData.get("otp"),
+    password: formData.get("password"),
+  });
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Please check your details." };
+  }
+
+  const rateLimitKey = `trainer-otp:${parsed.data.email.toLowerCase()}`;
+  if (isRateLimited(rateLimitKey)) {
+    return { ok: false, message: RATE_LIMIT_MESSAGE };
+  }
+
+  const trainer = await findValidTrainerOtp(parsed.data.email, parsed.data.otp);
+  if (!trainer) {
+    recordFailedAttempt(rateLimitKey);
+    return { ok: false, message: "That verification code is invalid or has expired. Please start again." };
+  }
+
+  const passwordHash = await hashPassword(parsed.data.password);
+  await db.trainer.update({
+    where: { id: trainer.id },
+    data: {
+      passwordHash,
+      mustChangePassword: false,
+      emailVerified: true,
+      otpHash: null,
+      otpExpiresAt: null,
+    },
+  });
+
+  clearAttempts(rateLimitKey);
+  await createTrainerSession({ trainerId: trainer.id, name: trainer.name, email: trainer.email! });
+  redirect("/trainer");
+}
+
+export async function resendVerificationEmail(
+  _prev: AuthFormState,
+  _formData: FormData
+): Promise<AuthFormState> {
+  const session = await getStudentSession();
+  if (!session) return { ok: false, message: "Your session has expired. Please sign in again." };
+
+  const rateLimitKey = `verify-resend:${session.studentId}`;
+  if (isRateLimited(rateLimitKey)) {
+    return { ok: false, message: RATE_LIMIT_MESSAGE };
+  }
+  recordFailedAttempt(rateLimitKey);
+
+  const student = await db.student.findUnique({ where: { id: session.studentId } });
+  if (!student) return { ok: false, message: "Account not found." };
+  if (student.emailVerified) return { ok: true, message: "Your email is already verified." };
+
+  await sendVerificationEmail(student);
+  return { ok: true, message: "Verification email sent. Please check your inbox." };
 }

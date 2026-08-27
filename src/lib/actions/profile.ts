@@ -11,7 +11,8 @@ const profileSchema = z.object({
   name: z.string().trim().min(2, "Name is too short"),
   phone: z.string().trim().min(8, "Enter a valid phone number"),
   whatsapp: z.string().trim().optional(),
-  bio: z.string().trim().max(280).optional(),
+  age: z.coerce.number().int().min(10, "Enter a valid age").max(100, "Enter a valid age").optional(),
+  gender: z.enum(["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY"]).optional(),
 });
 
 export async function updateProfile(
@@ -25,7 +26,8 @@ export async function updateProfile(
     name: formData.get("name"),
     phone: formData.get("phone"),
     whatsapp: formData.get("whatsapp") || undefined,
-    bio: formData.get("bio") || undefined,
+    age: formData.get("age") || undefined,
+    gender: formData.get("gender") || undefined,
   });
   if (!parsed.success) {
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Please check your details." };
@@ -38,6 +40,33 @@ export async function updateProfile(
 
   revalidatePath("/portal/profile");
   return { ok: true, message: "Profile updated." };
+}
+
+const bioSchema = z.object({
+  bio: z.string().trim().max(280).optional(),
+});
+
+export async function updateBio(
+  _prev: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  const session = await getStudentSession();
+  if (!session) return { ok: false, message: "Your session has expired. Please sign in again." };
+
+  const parsed = bioSchema.safeParse({
+    bio: formData.get("bio") || undefined,
+  });
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Please check your bio." };
+  }
+
+  await db.student.update({
+    where: { id: session.studentId },
+    data: { bio: parsed.data.bio ?? null },
+  });
+
+  revalidatePath("/portal/profile");
+  return { ok: true, message: "Bio updated." };
 }
 
 const passwordSchema = z

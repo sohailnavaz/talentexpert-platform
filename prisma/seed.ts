@@ -491,6 +491,7 @@ const BADGES = [
     description: "Enrolled in your first course.",
     icon: "Rocket",
     criteria: { type: "enrollmentsCount", threshold: 1 },
+    points: 10,
   },
   {
     key: "first-course-completed",
@@ -498,6 +499,7 @@ const BADGES = [
     description: "Completed your first course.",
     icon: "Award",
     criteria: { type: "coursesCompleted", threshold: 1 },
+    points: 20,
   },
   {
     key: "three-courses-completed",
@@ -505,6 +507,7 @@ const BADGES = [
     description: "Completed three courses.",
     icon: "Trophy",
     criteria: { type: "coursesCompleted", threshold: 3 },
+    points: 40,
   },
   {
     key: "twenty-five-hours",
@@ -512,6 +515,7 @@ const BADGES = [
     description: "Logged 25 hours of learning.",
     icon: "Clock",
     criteria: { type: "hoursLogged", threshold: 25 },
+    points: 20,
   },
   {
     key: "hundred-hours",
@@ -519,6 +523,7 @@ const BADGES = [
     description: "Logged 100 hours of learning.",
     icon: "Flame",
     criteria: { type: "hoursLogged", threshold: 100 },
+    points: 50,
   },
   {
     key: "first-test-passed",
@@ -526,6 +531,7 @@ const BADGES = [
     description: "Passed your first test with a score of 60% or higher.",
     icon: "Sparkles",
     criteria: { type: "testsPassed", threshold: 1 },
+    points: 15,
   },
 ];
 

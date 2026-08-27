@@ -8,6 +8,9 @@ import { slugify } from "@/lib/format";
 import { verifyAdminSession, requireRole } from "@/lib/auth/dal";
 import { saveUploadedFile } from "@/lib/storage";
 import { hashPassword, generateTempPassword } from "@/lib/auth/password";
+import { generateOtp } from "@/lib/auth/otp";
+
+const OTP_TTL_MS = 15 * 60 * 1000;
 import { sendEmail } from "@/lib/email";
 import { logActivity } from "@/lib/audit";
 import type { AdminFormState } from "@/lib/actions/admin-courses";
@@ -66,11 +69,11 @@ export async function createTrainer(
   let attempt = 1;
   while (await db.trainer.findUnique({ where: { slug } })) slug = `${baseSlug}-${attempt++}`;
 
-  let tempPassword: string | null = null;
-  let passwordHash: string | null = null;
+  let otp: string | null = null;
+  let otpHash: string | null = null;
   if (d.email) {
-    tempPassword = generateTempPassword();
-    passwordHash = await hashPassword(tempPassword);
+    otp = generateOtp();
+    otpHash = await hashPassword(otp);
   }
 
   const trainer = await db.trainer.create({
@@ -83,15 +86,17 @@ export async function createTrainer(
       active: d.active ?? true,
       photoUrl,
       email: d.email || null,
-      passwordHash,
+      otpHash,
+      otpExpiresAt: otp ? new Date(Date.now() + OTP_TTL_MS) : null,
     },
   });
 
-  if (d.email && tempPassword) {
+  if (d.email && otp) {
+    const verifyUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/trainer/verify`;
     await sendEmail({
       to: d.email,
-      subject: "Your Talent Expert trainer portal access",
-      html: `<p>Hi ${d.name},</p><p>You've been given access to the trainer portal.</p><p>Sign in at <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/trainer/login">/trainer/login</a> with:</p><p>Email: ${d.email}<br/>Temporary password: <strong>${tempPassword}</strong></p>`,
+      subject: "Verify your email for the Talent Expert trainer portal",
+      html: `<p>Hi ${d.name},</p><p>You've been given access to the trainer portal. Verify your email with the code below, then set your own password.</p><p style="font-size:28px;font-weight:700;letter-spacing:0.2em;">${otp}</p><p>This code expires in 15 minutes.</p><p>Verify at <a href="${verifyUrl}">${verifyUrl}</a> using ${d.email}.</p>`,
     });
   }
   await logActivity(session.adminId, "trainer.create", "Trainer", trainer.id, { name: trainer.name });
@@ -131,14 +136,20 @@ export async function updateTrainer(
 
   const photoUrl = await resolvePhoto(formData, existing.photoUrl);
 
-  let tempPassword: string | null = null;
+  let otp: string | null = null;
+  let otpHash: string | null | undefined = undefined;
+  let otpExpiresAt: Date | null | undefined = undefined;
   let passwordHash: string | null | undefined = undefined;
   const grantingAccess = !!d.email && !existing.email;
   if (grantingAccess) {
-    tempPassword = generateTempPassword();
-    passwordHash = await hashPassword(tempPassword);
+    otp = generateOtp();
+    otpHash = await hashPassword(otp);
+    otpExpiresAt = new Date(Date.now() + OTP_TTL_MS);
+    passwordHash = null;
   } else if (!d.email && existing.email) {
     passwordHash = null;
+    otpHash = null;
+    otpExpiresAt = null;
   }
 
   await db.trainer.update({
@@ -152,17 +163,21 @@ export async function updateTrainer(
       photoUrl,
       email: d.email || null,
       ...(passwordHash !== undefined ? { passwordHash } : {}),
+      ...(otpHash !== undefined ? { otpHash } : {}),
+      ...(otpExpiresAt !== undefined ? { otpExpiresAt } : {}),
+      ...(grantingAccess ? { emailVerified: false } : {}),
     },
   });
 
-  if (grantingAccess && tempPassword && d.email) {
+  if (grantingAccess && otp && d.email) {
+    const verifyUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/trainer/verify`;
     await sendEmail({
       to: d.email,
-      subject: "Your Talent Expert trainer portal access",
-      html: `<p>Hi ${d.name},</p><p>You've been given access to the trainer portal.</p><p>Sign in at <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/trainer/login">/trainer/login</a> with:</p><p>Email: ${d.email}<br/>Temporary password: <strong>${tempPassword}</strong></p>`,
+      subject: "Verify your email for the Talent Expert trainer portal",
+      html: `<p>Hi ${d.name},</p><p>You've been given access to the trainer portal. Verify your email with the code below, then set your own password.</p><p style="font-size:28px;font-weight:700;letter-spacing:0.2em;">${otp}</p><p>This code expires in 15 minutes.</p><p>Verify at <a href="${verifyUrl}">${verifyUrl}</a> using ${d.email}.</p>`,
     });
     await logActivity(session.adminId, "trainer.grant_portal_access", "Trainer", trainerId, { email: d.email });
-  } else if (passwordHash === null) {
+  } else if (passwordHash === null && !grantingAccess) {
     await logActivity(session.adminId, "trainer.revoke_portal_access", "Trainer", trainerId);
   }
 

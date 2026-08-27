@@ -43,7 +43,7 @@ export default async function PortalDashboardPage() {
             </div>
             <div className="flex flex-col items-start gap-3 sm:items-end">
               <SessionCountdown date={nextSession.date.toISOString()} />
-              <Button render={<a href={nextSession.joinUrl} target="_blank" rel="noreferrer" />} nativeButton={false}>
+              <Button render={<Link href={`/portal/live/${nextSession.id}`} />} nativeButton={false}>
                 Join class <ArrowRight className="h-4 w-4" />
               </Button>
             </div>

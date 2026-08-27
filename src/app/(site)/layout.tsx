@@ -4,14 +4,19 @@ import { GoogleTagManager } from "@next/third-parties/google";
 import { Navbar } from "@/components/site/navbar";
 import { Footer } from "@/components/site/footer";
 import { AnnouncementBar } from "@/components/site/announcement-bar";
+import { AnnouncementPopup } from "@/components/site/announcement-popup";
 import { Analytics } from "@/components/analytics";
 import { getSiteContactInfo } from "@/lib/site-settings";
+import { getActiveAnnouncements } from "@/lib/data/announcements";
 import { siteConfig } from "@/lib/site-config";
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
 export default async function SiteLayout({ children }: { children: ReactNode }) {
-  const contact = await getSiteContactInfo();
+  const [contact, popupAnnouncements] = await Promise.all([
+    getSiteContactInfo(),
+    getActiveAnnouncements("WEBSITE", { popupOnly: true, take: 3 }),
+  ]);
 
   const organizationJsonLd = {
     "@context": "https://schema.org",
@@ -34,6 +39,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
       />
+      <AnnouncementPopup announcements={popupAnnouncements} />
       <Suspense fallback={null}>
         <AnnouncementBar />
       </Suspense>

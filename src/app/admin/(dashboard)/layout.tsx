@@ -12,6 +12,7 @@ import {
   Megaphone,
   MessageSquare,
   Newspaper,
+  Quote,
   Receipt,
   Settings,
   ShieldCheck,
@@ -69,6 +70,7 @@ const NAV_GROUPS = [
       { label: "Announcements", href: "/admin/announcements", icon: Megaphone },
       { label: "Leads / Enquiries", href: "/admin/leads", icon: MessageSquare },
       { label: "Reviews", href: "/admin/reviews", icon: Star },
+      { label: "Testimonials", href: "/admin/testimonials", icon: Quote },
     ],
   },
   {

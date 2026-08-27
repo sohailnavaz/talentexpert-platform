@@ -5,38 +5,29 @@ import { Send } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
+import { useBatchMessages } from "@/hooks/use-batch-messages";
+import type { BatchMessageEvent } from "@/lib/actions/batch-messages";
 
-type Message = {
-  id: string;
-  authorRole: "STUDENT" | "TRAINER" | "ADMIN";
-  body: string;
-  createdAt: Date;
-  student: { name: string } | null;
-  trainer: { name: string } | null;
-  admin: { name: string } | null;
-};
-
-const ROLE_LABEL: Record<Message["authorRole"], string> = {
+const ROLE_LABEL: Record<BatchMessageEvent["authorRole"], string> = {
   STUDENT: "Student",
   TRAINER: "Trainer",
   ADMIN: "Talent Expert Team",
 };
 
-function authorName(m: Message) {
-  return m.student?.name ?? m.trainer?.name ?? m.admin?.name ?? ROLE_LABEL[m.authorRole];
-}
-
 export function BatchMessageThread({
-  messages,
+  batchId,
+  initialMessages,
   postAction,
   viewerRole,
   emptyLabel = "No messages yet — start the conversation.",
 }: {
-  messages: Message[];
+  batchId: string;
+  initialMessages: BatchMessageEvent[];
   postAction: (formData: FormData) => Promise<void>;
-  viewerRole: Message["authorRole"];
+  viewerRole: BatchMessageEvent["authorRole"];
   emptyLabel?: string;
 }) {
+  const { messages, refresh } = useBatchMessages(batchId, initialMessages);
   const [pending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -44,6 +35,7 @@ export function BatchMessageThread({
     startTransition(async () => {
       await postAction(formData);
       formRef.current?.reset();
+      await refresh();
     });
   }
 
@@ -58,7 +50,7 @@ export function BatchMessageThread({
             return (
               <div key={m.id} className={`flex flex-col ${mine ? "items-end text-right" : "items-start"}`}>
                 <span className="text-xs font-medium text-muted-foreground">
-                  {authorName(m)} · {ROLE_LABEL[m.authorRole]} · {formatDate(m.createdAt)}
+                  {m.authorName} · {ROLE_LABEL[m.authorRole]} · {formatDate(m.createdAt)}
                 </span>
                 <p
                   className={`mt-1 max-w-[85%] rounded-xl px-3 py-2 text-sm ${

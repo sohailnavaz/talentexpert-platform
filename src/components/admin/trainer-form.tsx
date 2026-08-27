@@ -49,7 +49,7 @@ export function TrainerForm({
         <p className="text-xs text-muted-foreground">
           {trainer?.email
             ? "Trainer already has portal access. Clear this field to revoke it."
-            : "Setting an email grants trainer-portal access and emails a temporary password."}
+            : "Setting an email grants trainer-portal access and emails a 6-digit code — the trainer verifies it and sets their own password at /trainer/verify."}
         </p>
       </div>
       <div className="space-y-1.5">

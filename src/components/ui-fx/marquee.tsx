@@ -32,7 +32,8 @@ export function Marquee({
             vertical
               ? "animate-marquee-vertical flex-col"
               : "animate-marquee flex-row",
-            pauseOnHover && "group-hover:[animation-play-state:paused]",
+            pauseOnHover &&
+              "group-hover:[animation-play-state:paused] group-focus-within:[animation-play-state:paused]",
             reverse && "[animation-direction:reverse]"
           )}
         >

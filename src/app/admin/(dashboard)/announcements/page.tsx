@@ -18,7 +18,9 @@ export const metadata: Metadata = { title: "Announcements" };
 const audienceLabels: Record<string, string> = { WEBSITE: "Website", PORTAL: "Portal", BOTH: "Both" };
 
 export default async function AdminAnnouncementsPage() {
-  const announcements = await db.announcement.findMany({ orderBy: { createdAt: "desc" } });
+  const announcements = await db.announcement.findMany({
+    orderBy: [{ priority: "desc" }, { createdAt: "desc" }],
+  });
 
   return (
     <div className="space-y-8">
@@ -37,6 +39,8 @@ export default async function AdminAnnouncementsPage() {
             <TableRow>
               <TableHead>Title</TableHead>
               <TableHead>Audience</TableHead>
+              <TableHead>Priority</TableHead>
+              <TableHead>Popup</TableHead>
               <TableHead>Window</TableHead>
               <TableHead className="text-right">Active</TableHead>
             </TableRow>
@@ -51,6 +55,10 @@ export default async function AdminAnnouncementsPage() {
                 <TableCell>
                   <Badge variant="secondary">{audienceLabels[a.audience]}</Badge>
                 </TableCell>
+                <TableCell className="text-sm tabular-nums">{a.priority}</TableCell>
+                <TableCell>
+                  {a.showPopup ? <Badge>Popup</Badge> : <span className="text-xs text-muted-foreground">Banner only</span>}
+                </TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   {formatDate(a.startAt)} {a.endAt ? `– ${formatDate(a.endAt)}` : "(no end date)"}
                 </TableCell>
@@ -61,7 +69,7 @@ export default async function AdminAnnouncementsPage() {
             ))}
             {announcements.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
                   No announcements yet.
                 </TableCell>
               </TableRow>

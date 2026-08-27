@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { verifyAdminSession, requireRole } from "@/lib/auth/dal";
 import { logActivity } from "@/lib/audit";
+import { createDailyRoom, deleteDailyRoom } from "@/lib/daily";
 import type { AdminFormState } from "@/lib/actions/admin-courses";
 
 const MODES = ["ONLINE", "CLASSROOM", "WEEKEND", "CORPORATE", "INTERNSHIP", "WORKSHOP"] as const;
@@ -165,15 +166,47 @@ export async function addSession(
   data: { topic: string; date: string; time: string; joinUrl: string; recordingUrl?: string; isFreePreview?: boolean }
 ) {
   await verifyAdminSession();
+
+  const sessionDate = new Date(data.date);
+  const expiresAt = new Date(sessionDate.getTime() + 6 * 60 * 60 * 1000);
+  const room = await createDailyRoom(expiresAt);
+  if (!room && process.env.DAILY_API_KEY && !data.joinUrl) {
+    throw new Error("Could not create the video room. Please try again.");
+  }
+
   await db.classSession.create({
     data: {
       batchId,
       topic: data.topic,
-      date: new Date(data.date),
+      date: sessionDate,
       time: data.time,
-      joinUrl: data.joinUrl,
+      joinUrl: room?.url ?? data.joinUrl,
+      roomName: room?.name ?? null,
       recordingUrl: data.recordingUrl || null,
       isFreePreview: data.isFreePreview ?? false,
+    },
+  });
+  revalidatePath(`/admin/batches/${batchId}/edit`);
+  revalidatePath("/portal");
+  revalidatePath(`/preview/${batchId}`);
+}
+
+export async function updateSessionDetails(
+  sessionId: string,
+  batchId: string,
+  data: { topic: string; date: string; time: string; joinUrl?: string }
+) {
+  await verifyAdminSession();
+  const existing = await db.classSession.findUnique({ where: { id: sessionId }, select: { roomName: true } });
+
+  await db.classSession.update({
+    where: { id: sessionId },
+    data: {
+      topic: data.topic,
+      date: new Date(data.date),
+      time: data.time,
+      // A Daily room's URL is server-managed once created; only accept a manual joinUrl when there's no room.
+      ...(existing?.roomName ? {} : { joinUrl: data.joinUrl || undefined }),
     },
   });
   revalidatePath(`/admin/batches/${batchId}/edit`);
@@ -198,6 +231,10 @@ export async function updateSessionRecording(
 
 export async function deleteSession(sessionId: string, batchId: string) {
   await verifyAdminSession();
+  const session = await db.classSession.findUnique({ where: { id: sessionId }, select: { roomName: true } });
+  if (session?.roomName) {
+    await deleteDailyRoom(session.roomName);
+  }
   await db.classSession.delete({ where: { id: sessionId } });
   revalidatePath(`/admin/batches/${batchId}/edit`);
 }

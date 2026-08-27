@@ -17,9 +17,14 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getCurrentStudent } from "@/lib/auth/dal";
 import { logoutStudent } from "@/lib/actions/auth";
+import { formatMemberId } from "@/lib/format";
+import { generateAvatarDataUri } from "@/lib/avatar";
+import { VerifyEmailBanner } from "@/components/portal/verify-email-banner";
+import { AnnouncementPopup } from "@/components/site/announcement-popup";
+import { getActiveAnnouncements } from "@/lib/data/announcements";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -31,10 +36,14 @@ const NAV = [
 ];
 
 export default async function PortalLayout({ children }: { children: ReactNode }) {
-  const student = await getCurrentStudent();
+  const [student, popupAnnouncements] = await Promise.all([
+    getCurrentStudent(),
+    getActiveAnnouncements("PORTAL", { popupOnly: true, take: 3 }),
+  ]);
 
   return (
     <SidebarProvider>
+      <AnnouncementPopup announcements={popupAnnouncements} />
       <Sidebar collapsible="icon">
         <SidebarHeader>
           <Link href="/" className="flex items-center gap-2 px-2 py-1.5">
@@ -65,13 +74,16 @@ export default async function PortalLayout({ children }: { children: ReactNode }
             <SidebarMenuItem>
               <div className="flex items-center gap-2 px-2 py-1.5 group-data-[collapsible=icon]:hidden">
                 <Avatar className="h-8 w-8">
+                  {student ? <AvatarImage src={generateAvatarDataUri(student.id)} alt={student.name} /> : null}
                   <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">
                     {student?.name?.charAt(0) ?? "S"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{student?.name ?? "Student"}</p>
-                  <p className="truncate text-xs text-muted-foreground">{student?.email}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {student ? formatMemberId(student.studentNumber) : ""}
+                  </p>
                 </div>
               </div>
             </SidebarMenuItem>
@@ -91,6 +103,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
           <SidebarTrigger />
           <span className="font-heading text-sm font-semibold">Student Portal</span>
         </header>
+        {student && !student.emailVerified ? <VerifyEmailBanner /> : null}
         <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
       </SidebarInset>
     </SidebarProvider>

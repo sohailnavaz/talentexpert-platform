@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getCategories, getPublishedCourses } from "@/lib/data/courses";
 import { PageHero } from "@/components/site/page-hero";
 import { CourseFilters } from "@/components/site/course-filters";
 import { CourseCard } from "@/components/site/course-card";
+import { Button } from "@/components/ui/button";
 import { RevealItem, RevealStagger } from "@/components/ui-fx/reveal";
 import type { DeliveryMode } from "@/generated/prisma";
 
@@ -11,16 +14,32 @@ export const metadata: Metadata = {
   description: "Browse the full Talent Expert course catalogue — filter by category and mode.",
 };
 
+const PAGE_SIZE = 9;
+
+function buildPageHref(params: { category?: string; mode?: string; q?: string }, page: number) {
+  const usp = new URLSearchParams();
+  if (params.category) usp.set("category", params.category);
+  if (params.mode) usp.set("mode", params.mode);
+  if (params.q) usp.set("q", params.q);
+  if (page > 1) usp.set("page", String(page));
+  const qs = usp.toString();
+  return qs ? `/courses?${qs}` : "/courses";
+}
+
 export default async function CoursesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; mode?: string; q?: string }>;
+  searchParams: Promise<{ category?: string; mode?: string; q?: string; page?: string }>;
 }) {
-  const { category, mode, q } = await searchParams;
+  const { category, mode, q, page } = await searchParams;
   const [courses, categories] = await Promise.all([
     getPublishedCourses({ categorySlug: category, mode: mode as DeliveryMode | undefined, q }),
     getCategories(),
   ]);
+
+  const totalPages = Math.max(1, Math.ceil(courses.length / PAGE_SIZE));
+  const currentPage = Math.min(Math.max(Number(page) || 1, 1), totalPages);
+  const pagedCourses = courses.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <>
@@ -45,13 +64,43 @@ export default async function CoursesPage({
             </p>
           </div>
         ) : (
-          <RevealStagger className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {courses.map((course) => (
-              <RevealItem key={course.id}>
-                <CourseCard course={course} />
-              </RevealItem>
-            ))}
-          </RevealStagger>
+          <>
+            <RevealStagger className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {pagedCourses.map((course) => (
+                <RevealItem key={course.id}>
+                  <CourseCard course={course} />
+                </RevealItem>
+              ))}
+            </RevealStagger>
+
+            {totalPages > 1 ? (
+              <nav aria-label="Pagination" className="mt-10 flex items-center justify-center gap-2">
+                <Button
+                  render={<Link href={buildPageHref({ category, mode, q }, currentPage - 1)} />}
+                  nativeButton={false}
+                  variant="outline"
+                  size="sm"
+                  aria-disabled={currentPage === 1}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : undefined}
+                >
+                  <ChevronLeft className="h-4 w-4" /> Prev
+                </Button>
+                <span className="px-2 text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  render={<Link href={buildPageHref({ category, mode, q }, currentPage + 1)} />}
+                  nativeButton={false}
+                  variant="outline"
+                  size="sm"
+                  aria-disabled={currentPage === totalPages}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : undefined}
+                >
+                  Next <ChevronRight className="h-4 w-4" />
+                </Button>
+              </nav>
+            ) : null}
+          </>
         )}
       </section>
     </>

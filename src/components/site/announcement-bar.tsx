@@ -1,17 +1,8 @@
-import { db } from "@/lib/db";
+import { getActiveAnnouncements } from "@/lib/data/announcements";
 import { AnnouncementBarClient } from "./announcement-bar-client";
 
 export async function AnnouncementBar() {
-  const now = new Date();
-  const announcement = await db.announcement.findFirst({
-    where: {
-      active: true,
-      audience: { in: ["WEBSITE", "BOTH"] },
-      startAt: { lte: now },
-      OR: [{ endAt: null }, { endAt: { gte: now } }],
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const [announcement] = await getActiveAnnouncements("WEBSITE", { take: 1 });
 
   if (!announcement) return null;
 

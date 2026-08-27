@@ -5,6 +5,18 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/auth/password";
 import { createStudentSession } from "@/lib/auth/session";
+import { createVerifyToken } from "@/lib/auth/verify-token";
+import { sendEmail } from "@/lib/email";
+
+export async function sendVerificationEmail(student: { id: string; name: string; email: string }) {
+  const token = await createVerifyToken(student.id);
+  const verifyUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/verify-email?token=${token}`;
+  await sendEmail({
+    to: student.email,
+    subject: "Verify your Talent Expert email",
+    html: `<p>Hi ${student.name},</p><p>Click the link below to verify your email address. This link expires in 24 hours.</p><p><a href="${verifyUrl}">${verifyUrl}</a></p>`,
+  });
+}
 
 const schema = z.object({
   name: z.string().trim().min(2, "Please enter your name"),
@@ -47,5 +59,6 @@ export async function signupStudent(_prev: SignupState, formData: FormData): Pro
   });
 
   await createStudentSession({ studentId: student.id, name: student.name, email: student.email });
+  await sendVerificationEmail(student);
   redirect("/portal");
 }

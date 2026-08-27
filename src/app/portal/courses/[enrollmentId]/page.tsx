@@ -154,7 +154,7 @@ export default async function CourseWorkspacePage({
                         >
                           <CalendarPlus className="h-3.5 w-3.5" /> Calendar
                         </Button>
-                        <Button render={<a href={s.joinUrl} target="_blank" rel="noreferrer" />} nativeButton={false} size="sm">
+                        <Button render={<Link href={`/portal/live/${s.id}`} />} nativeButton={false} size="sm">
                           Join
                         </Button>
                       </div>
@@ -217,7 +217,7 @@ export default async function CourseWorkspacePage({
               Message your trainer and batchmates. Everyone enrolled in this batch can see this thread.
             </p>
             <div className="mt-3">
-              <BatchMessageThread messages={messages} postAction={postMessage} viewerRole="STUDENT" />
+              <BatchMessageThread batchId={batch.id} initialMessages={messages} postAction={postMessage} viewerRole="STUDENT" />
             </div>
           </section>
         </div>

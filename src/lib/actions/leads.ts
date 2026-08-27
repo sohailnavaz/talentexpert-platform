@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { sendEmail } from "@/lib/email";
 import { getSiteContactInfo } from "@/lib/site-settings";
 import { appendRowToSheet } from "@/lib/google-sheets";
 
@@ -59,10 +59,21 @@ export async function submitLead(
   });
 
   const contact = await getSiteContactInfo();
-  await sendWhatsAppMessage(
-    contact.whatsappNumber,
-    `New enquiry: ${name} (${phone})${courseInterest ? ` — interested in ${courseInterest}` : ""}. Email: ${email}${message ? `\nMessage: ${message}` : ""}`
-  );
+  await sendEmail({
+    to: contact.email,
+    subject: `New enquiry: ${name}`,
+    html: `
+      <p>New enquiry from the website:</p>
+      <ul>
+        <li><strong>Name:</strong> ${name}</li>
+        <li><strong>Phone:</strong> ${phone}</li>
+        <li><strong>Email:</strong> ${email}</li>
+        ${courseInterest ? `<li><strong>Interested in:</strong> ${courseInterest}</li>` : ""}
+        ${sourcePage ? `<li><strong>Source page:</strong> ${sourcePage}</li>` : ""}
+      </ul>
+      ${message ? `<p><strong>Message:</strong> ${message}</p>` : ""}
+    `,
+  });
   await appendRowToSheet(process.env.GOOGLE_SHEETS_LEADS_TAB || "Sheet1", [
     new Date().toISOString(),
     name,

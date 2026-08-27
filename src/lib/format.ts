@@ -36,6 +36,10 @@ export const batchStatusLabels: Record<string, string> = {
   COMPLETED: "Completed",
 };
 
+export function formatMemberId(studentNumber: number) {
+  return `TE-${String(studentNumber).padStart(6, "0")}`;
+}
+
 export function slugify(input: string) {
   return input
     .toLowerCase()

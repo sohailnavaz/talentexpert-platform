@@ -12,6 +12,8 @@ const schema = z.object({
   title: z.string().trim().min(2),
   body: z.string().trim().min(2),
   audience: z.enum(["WEBSITE", "PORTAL", "BOTH"]),
+  priority: z.coerce.number().int().min(0).max(10).optional(),
+  showPopup: z.coerce.boolean().optional(),
   startAt: z.string().min(1),
   endAt: z.string().optional(),
 });
@@ -27,6 +29,8 @@ export async function createAnnouncement(
     title: formData.get("title"),
     body: formData.get("body"),
     audience: formData.get("audience") ?? "BOTH",
+    priority: formData.get("priority") || undefined,
+    showPopup: formData.get("showPopup") === "on",
     startAt: formData.get("startAt"),
     endAt: formData.get("endAt") || undefined,
   });
@@ -40,6 +44,8 @@ export async function createAnnouncement(
       title: d.title,
       body: d.body,
       audience: d.audience,
+      priority: d.priority ?? 0,
+      showPopup: d.showPopup ?? false,
       startAt: new Date(d.startAt),
       endAt: d.endAt ? new Date(d.endAt) : null,
       active: true,

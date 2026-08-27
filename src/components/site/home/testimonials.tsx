@@ -17,11 +17,12 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
         />
       </div>
       <Reveal className="mt-8 sm:mt-12">
-        <Marquee pauseOnHover className="[--gap:1.25rem]">
+        <Marquee pauseOnHover className="[--gap:2rem]">
           {testimonials.map((t) => (
             <figure
               key={t.id}
-              className="flex w-80 shrink-0 flex-col rounded-2xl border border-border bg-card p-5 shadow-sm sm:w-96"
+              tabIndex={0}
+              className="flex w-80 shrink-0 flex-col rounded-2xl border border-border bg-card p-5 shadow-sm outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 sm:w-96"
             >
               <div className="flex gap-0.5 text-[var(--brand-2)]">
                 {Array.from({ length: t.rating }).map((_, i) => (

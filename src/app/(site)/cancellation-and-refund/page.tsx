@@ -37,7 +37,7 @@ export default function CancellationRefundPage() {
         <div>
           <h2 className="font-heading text-base font-semibold text-foreground">How to request a refund</h2>
           <p className="mt-2">
-            Email {siteConfig.email} with your Enrollment ID and reason for cancellation. Approved
+            Email {siteConfig.email} with your Enrolment ID and reason for cancellation. Approved
             refunds are processed to the original payment method within 7–10 business days.
           </p>
         </div>

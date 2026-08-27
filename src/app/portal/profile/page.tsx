@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { verifyStudentSession } from "@/lib/auth/dal";
-import { evaluateAndAwardBadges, getStudentBadgeBoard } from "@/lib/gamification";
+import { evaluateAndAwardBadges, getStudentBadgeBoard, getLevelProgress } from "@/lib/gamification";
+import { formatMemberId } from "@/lib/format";
+import { generateAvatarDataUri } from "@/lib/avatar";
 import { AuroraBackground } from "@/components/ui-fx/aurora-background";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProfileStats } from "@/components/portal/profile-stats";
 import { BadgesGridLazy } from "@/components/portal/badges-grid-lazy";
+import { RewardMeter } from "@/components/portal/reward-meter";
+import { InlineBioEditor } from "@/components/portal/inline-bio-editor";
 import { ProfileForm } from "@/components/portal/profile-form";
 import { PasswordForm } from "@/components/portal/password-form";
 
@@ -16,8 +20,10 @@ export default async function ProfilePage() {
   const session = await verifyStudentSession();
   const student = await db.student.findUniqueOrThrow({ where: { id: session.studentId } });
   const { stats } = await evaluateAndAwardBadges(session.studentId);
-  const badges = await getStudentBadgeBoard(session.studentId);
+  const badges = await getStudentBadgeBoard(session.studentId, stats);
   const earnedCount = badges.filter((b) => b.earned).length;
+  const totalPoints = badges.filter((b) => b.earned).reduce((sum, b) => sum + b.points, 0);
+  const { level, nextLevel, pointsToNext } = getLevelProgress(totalPoints);
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -25,16 +31,20 @@ export default async function ProfilePage() {
         <AuroraBackground />
         <div className="relative flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:text-left">
           <Avatar className="h-20 w-20 border-4 border-background shadow-lg">
+            <AvatarImage src={generateAvatarDataUri(student.id)} alt={student.name} />
             <AvatarFallback className="bg-primary/15 font-heading text-2xl font-bold text-primary">
               {student.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="font-heading text-2xl font-bold">{student.name}</h1>
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+              <h1 className="font-heading text-2xl font-bold">{student.name}</h1>
+              <span className="rounded-full border border-border bg-muted/50 px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                {formatMemberId(student.studentNumber)}
+              </span>
+            </div>
             <p className="text-sm text-muted-foreground">{student.email}</p>
-            <p className="mt-1.5 max-w-md text-sm text-foreground/80">
-              {student.bio ?? "No bio yet — tell us a bit about your learning goals."}
-            </p>
+            <InlineBioEditor bio={student.bio} />
           </div>
         </div>
       </div>
@@ -45,6 +55,8 @@ export default async function ProfilePage() {
           <ProfileStats stats={stats} />
         </div>
       </div>
+
+      <RewardMeter totalPoints={totalPoints} level={level} nextLevel={nextLevel} pointsToNext={pointsToNext} />
 
       <div>
         <div className="flex items-center justify-between">
@@ -73,7 +85,8 @@ export default async function ProfilePage() {
               name={student.name}
               phone={student.phone}
               whatsapp={student.whatsapp}
-              bio={student.bio}
+              age={student.age}
+              gender={student.gender}
             />
           </CardContent>
         </Card>
