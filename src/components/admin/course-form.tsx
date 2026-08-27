@@ -79,7 +79,11 @@ export function CourseForm({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="categoryId">Category</Label>
-          <Select name="categoryId" defaultValue={course?.categoryId ?? undefined}>
+          <Select
+            name="categoryId"
+            defaultValue={course?.categoryId ?? undefined}
+            items={Object.fromEntries(categories.map((c) => [c.id, c.name]))}
+          >
             <SelectTrigger id="categoryId" className="w-full">
               <SelectValue placeholder="Select a category" />
             </SelectTrigger>
@@ -94,7 +98,11 @@ export function CourseForm({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="trainerId">Trainer</Label>
-          <Select name="trainerId" defaultValue={course?.trainerId ?? undefined}>
+          <Select
+            name="trainerId"
+            defaultValue={course?.trainerId ?? undefined}
+            items={Object.fromEntries(trainers.map((t) => [t.id, t.name]))}
+          >
             <SelectTrigger id="trainerId" className="w-full">
               <SelectValue placeholder="Select a trainer" />
             </SelectTrigger>
@@ -164,7 +172,11 @@ export function CourseForm({
       <div className="flex items-center gap-6">
         <div className="space-y-1.5">
           <Label htmlFor="status">Status</Label>
-          <Select name="status" defaultValue={course?.status ?? "DRAFT"}>
+          <Select
+            name="status"
+            defaultValue={course?.status ?? "DRAFT"}
+            items={{ DRAFT: "Draft", PUBLISHED: "Published" }}
+          >
             <SelectTrigger id="status" className="w-40">
               <SelectValue />
             </SelectTrigger>
