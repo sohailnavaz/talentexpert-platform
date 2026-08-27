@@ -16,6 +16,8 @@ import { BatchCard } from "@/components/site/batch-card";
 import { CourseCard } from "@/components/site/course-card";
 import { EnquiryDialog } from "@/components/site/enquiry-dialog";
 import { SectionHeading } from "@/components/site/section-heading";
+import { ReviewForm } from "@/components/site/review-form";
+import { ReviewList, ReviewStarsAverage } from "@/components/site/review-summary";
 import { formatINR, modeLabels } from "@/lib/format";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -46,9 +48,45 @@ export default async function CourseDetailPage({
   const related = await getRelatedCourses(course.id, course.categoryId);
   const faqs = (course.faqs as { q: string; a: string }[] | null) ?? [];
 
+  const avgRating =
+    course.reviews.length > 0
+      ? course.reviews.reduce((s, r) => s + r.rating, 0) / course.reviews.length
+      : null;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Course",
+    name: course.title,
+    description: course.shortDescription,
+    provider: {
+      "@type": "Organization",
+      name: "Talent Expert",
+      sameAs: process.env.NEXT_PUBLIC_SITE_URL,
+    },
+    ...(avgRating
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: avgRating.toFixed(1),
+            reviewCount: course.reviews.length,
+          },
+        }
+      : {}),
+    ...(course.batches.length > 0
+      ? {
+          hasCourseInstance: course.batches.map((b) => ({
+            "@type": "CourseInstance",
+            courseMode: b.mode,
+            startDate: b.startDate.toISOString(),
+          })),
+        }
+      : {}),
+  };
+
   return (
     <>
-      <section className="relative overflow-hidden bg-[oklch(0.16_0.03_276)] text-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <section className="relative overflow-hidden bg-brand-navy text-white">
         <div className="absolute inset-0 bg-grid opacity-[0.12]" />
         <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1.4fr_1fr] lg:px-8">
           <div>
@@ -59,6 +97,11 @@ export default async function CourseDetailPage({
               {course.title}
             </h1>
             <p className="mt-3 max-w-2xl text-balance text-white/70">{course.shortDescription}</p>
+            {course.reviews.length > 0 ? (
+              <div className="mt-3">
+                <ReviewStarsAverage reviews={course.reviews} onDark />
+              </div>
+            ) : null}
 
             <div className="mt-6 flex flex-wrap gap-2">
               {course.modes.map((m) => (
@@ -96,7 +139,7 @@ export default async function CourseDetailPage({
               render={<Link href="#batches" />}
               nativeButton={false}
               size="lg"
-              className="bg-white text-[oklch(0.16_0.03_276)] hover:bg-white/90"
+              className="bg-white text-brand-navy hover:bg-white/90"
             >
               <CalendarDays className="h-4 w-4" /> View upcoming batches
             </Button>
@@ -178,6 +221,19 @@ export default async function CourseDetailPage({
               </Accordion>
             </div>
           ) : null}
+
+          <div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-heading text-xl font-semibold">Student reviews</h2>
+              <ReviewStarsAverage reviews={course.reviews} />
+            </div>
+            <div className="mt-4">
+              <ReviewForm courseId={course.id} courseSlug={course.slug} />
+            </div>
+            <div className="mt-5">
+              <ReviewList reviews={course.reviews} />
+            </div>
+          </div>
 
           <div id="batches" className="scroll-mt-24">
             <h2 className="font-heading text-xl font-semibold">Upcoming batches</h2>

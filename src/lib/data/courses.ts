@@ -40,6 +40,10 @@ export async function getCourseBySlug(slug: string) {
         orderBy: { startDate: "asc" },
         include: { offers: true, trainer: true },
       },
+      reviews: {
+        where: { hidden: false },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 }

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -9,13 +9,7 @@ const fontBody = Inter({
   variable: "--font-body",
   subsets: ["latin"],
   display: "swap",
-});
-
-const fontHeading = Plus_Jakarta_Sans({
-  variable: "--font-heading",
-  subsets: ["latin"],
-  display: "swap",
-  weight: ["500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const siteName = process.env.NEXT_PUBLIC_SITE_NAME ?? "Talent Expert";
@@ -38,7 +32,8 @@ export const metadata: Metadata = {
     "certification courses",
   ],
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icon.png",
+    apple: "/brand/icon-mark-180.png",
   },
   openGraph: {
     type: "website",
@@ -47,6 +42,7 @@ export const metadata: Metadata = {
     description:
       "Live courses, hands-on batches and placement assistance — learn, get certified, get hired.",
     url: siteUrl,
+    images: ["/brand/logo-full.png"],
   },
   twitter: {
     card: "summary_large_image",
@@ -60,14 +56,14 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#4338ca",
+  themeColor: "#0a1a35",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${fontBody.variable} ${fontHeading.variable} h-full antialiased`}
+      className={`${fontBody.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">

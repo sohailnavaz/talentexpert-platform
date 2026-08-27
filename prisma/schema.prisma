@@ -51,6 +51,7 @@ model Student {
   leads             Lead[]
   jobApplications   JobApplication[]
   badges            StudentBadge[]
+  reviews           Review[]
 
   @@index([email])
 }
@@ -123,9 +124,25 @@ model Course {
   modules          CourseModule[]
   batches          Batch[]
   leads            Lead[]
+  reviews          Review[]
 
   @@index([status])
   @@index([slug])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  studentId String?
+  student   Student? @relation(fields: [studentId], references: [id])
+  authorName String
+  rating    Int
+  comment   String   @db.Text
+  hidden    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([courseId])
 }
 
 model CourseModule {

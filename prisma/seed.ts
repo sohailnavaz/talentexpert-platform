@@ -451,6 +451,39 @@ const BLOG_POSTS = [
   },
 ];
 
+const REVIEWS: { courseSlug: string; authorName: string; rating: number; comment: string }[] = [
+  {
+    courseSlug: "full-stack-web-development-mern",
+    authorName: "Meghana Reddy",
+    rating: 5,
+    comment: "The pace was perfect for a beginner and the project reviews genuinely improved my code quality.",
+  },
+  {
+    courseSlug: "full-stack-web-development-mern",
+    authorName: "Kiran Kumar",
+    rating: 4,
+    comment: "Solid course. Would have liked a bit more time on deployment, but overall very practical.",
+  },
+  {
+    courseSlug: "data-science-with-python",
+    authorName: "Divya Sharma",
+    rating: 5,
+    comment: "Finally a course that explains statistics without making it feel like a math class.",
+  },
+  {
+    courseSlug: "aws-cloud-practitioner-to-solutions-architect",
+    authorName: "Karthik Iyer",
+    rating: 5,
+    comment: "Hands-on labs every session. Cleared my certification two weeks after finishing.",
+  },
+  {
+    courseSlug: "manual-automation-testing-with-selenium",
+    authorName: "Ritesh Gupta",
+    rating: 4,
+    comment: "Great transition course from manual to automation. The framework we built is genuinely reusable.",
+  },
+];
+
 const BADGES = [
   {
     key: "first-enrollment",
@@ -502,7 +535,24 @@ const JOB_OPENINGS = [
   { title: "Data Analyst", location: "Hyderabad (On-site)", experience: "0–2 years", description: "SQL and Power BI skills required. Great fit for recent Data Analytics graduates." },
 ];
 
+async function resetTransactionalData() {
+  console.log("Clearing previously seeded transactional data (safe to re-run)...");
+  await db.studentBadge.deleteMany();
+  await db.testAttempt.deleteMany();
+  await db.payment.deleteMany();
+  await db.enrollment.deleteMany();
+  await db.classSession.deleteMany();
+  await db.material.deleteMany();
+  await db.offer.deleteMany();
+  await db.batch.deleteMany();
+  await db.testimonial.deleteMany();
+  await db.placement.deleteMany();
+  await db.review.deleteMany();
+}
+
 async function main() {
+  await resetTransactionalData();
+
   console.log("Seeding categories...");
   const categoryMap = new Map<string, string>();
   for (const name of CATEGORIES) {
@@ -606,6 +656,21 @@ async function main() {
           value: 15,
           startAt: daysFromNow(-5),
           endAt: daysFromNow(10),
+        },
+      });
+    }
+  }
+
+  console.log("Seeding reviews...");
+  for (const r of REVIEWS) {
+    const course = await db.course.findUnique({ where: { slug: r.courseSlug } });
+    if (course) {
+      await db.review.create({
+        data: {
+          courseId: course.id,
+          authorName: r.authorName,
+          rating: r.rating,
+          comment: r.comment,
         },
       });
     }

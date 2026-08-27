@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 export function FinalCta() {
   return (
-    <section className="relative overflow-hidden bg-[oklch(0.16_0.03_276)] py-14 sm:py-20 text-white">
+    <section className="relative overflow-hidden bg-brand-navy py-14 sm:py-20 text-white">
       <Spotlight className="opacity-100" />
       <Reveal className="relative mx-auto flex max-w-3xl flex-col items-center px-4 text-center sm:px-6 lg:px-8">
         <h2 className="text-balance font-heading text-3xl font-bold sm:text-4xl">
@@ -23,7 +23,7 @@ export function FinalCta() {
             render={<Link href="/courses" />}
             nativeButton={false}
             size="lg"
-            className="w-full bg-white text-[oklch(0.16_0.03_276)] hover:bg-white/90 sm:w-auto"
+            className="w-full bg-white text-brand-navy hover:bg-white/90 sm:w-auto"
           >
             Browse courses <ArrowRight className="h-4 w-4" />
           </Button>

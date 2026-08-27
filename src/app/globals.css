@@ -9,7 +9,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-body);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-heading);
+  --font-heading: var(--font-body);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -43,6 +43,7 @@
   --color-brand-foreground: var(--brand-foreground);
   --color-brand-2: var(--brand-2);
   --color-brand-2-foreground: var(--brand-2-foreground);
+  --color-brand-navy: var(--brand-navy);
   --color-ink: var(--ink);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -93,86 +94,90 @@
 
 :root {
   --background: oklch(1 0 0);
-  --foreground: oklch(0.18 0.02 275);
-  --ink: oklch(0.18 0.02 275);
+  --foreground: oklch(0.2 0.03 258);
+  --ink: oklch(0.2 0.03 258);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 275);
+  --card-foreground: oklch(0.2 0.03 258);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 275);
+  --popover-foreground: oklch(0.2 0.03 258);
 
-  /* Brand: deep indigo/violet primary */
-  --primary: oklch(0.47 0.21 276);
-  --primary-foreground: oklch(0.98 0.01 276);
-  --brand: oklch(0.47 0.21 276);
-  --brand-foreground: oklch(0.98 0.01 276);
+  /* Brand: the logo's signature orange, used as the single accent color */
+  --primary: oklch(0.72 0.17 55);
+  --primary-foreground: oklch(0.99 0.01 90);
+  --brand: oklch(0.72 0.17 55);
+  --brand-foreground: oklch(0.99 0.01 90);
 
-  /* Brand accent: warm amber for CTAs / highlights */
-  --brand-2: oklch(0.77 0.16 68);
+  /* Lighter gold, for gradients and secondary accents in the same warm family */
+  --brand-2: oklch(0.8 0.14 68);
   --brand-2-foreground: oklch(0.22 0.05 68);
 
-  --secondary: oklch(0.96 0.01 276);
-  --secondary-foreground: oklch(0.3 0.05 276);
-  --muted: oklch(0.96 0.008 276);
-  --muted-foreground: oklch(0.48 0.02 276);
-  --accent: oklch(0.94 0.03 276);
-  --accent-foreground: oklch(0.3 0.1 276);
+  /* The logo's navy, for dark sections (hero, footer, sidebars) */
+  --brand-navy: oklch(0.19 0.045 258);
+
+  --secondary: oklch(0.96 0.008 258);
+  --secondary-foreground: oklch(0.28 0.04 258);
+  --muted: oklch(0.96 0.006 258);
+  --muted-foreground: oklch(0.48 0.02 258);
+  --accent: oklch(0.94 0.03 55);
+  --accent-foreground: oklch(0.3 0.08 55);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0.01 276);
-  --input: oklch(0.91 0.01 276);
-  --ring: oklch(0.6 0.15 276);
-  --chart-1: oklch(0.55 0.2 276);
-  --chart-2: oklch(0.72 0.16 68);
+  --border: oklch(0.91 0.008 258);
+  --input: oklch(0.91 0.008 258);
+  --ring: oklch(0.72 0.15 55);
+  --chart-1: oklch(0.7 0.17 55);
+  --chart-2: oklch(0.55 0.12 258);
   --chart-3: oklch(0.62 0.15 190);
   --chart-4: oklch(0.65 0.2 330);
   --chart-5: oklch(0.58 0.18 140);
   --radius: 0.85rem;
-  --sidebar: oklch(0.15 0.03 276);
-  --sidebar-foreground: oklch(0.96 0.01 276);
-  --sidebar-primary: oklch(0.6 0.18 276);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.22 0.04 276);
-  --sidebar-accent-foreground: oklch(0.96 0.01 276);
+  --sidebar: oklch(0.15 0.04 258);
+  --sidebar-foreground: oklch(0.96 0.008 258);
+  --sidebar-primary: oklch(0.72 0.17 55);
+  --sidebar-primary-foreground: oklch(0.15 0.04 258);
+  --sidebar-accent: oklch(0.22 0.045 258);
+  --sidebar-accent-foreground: oklch(0.96 0.008 258);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.6 0.15 276);
+  --sidebar-ring: oklch(0.72 0.15 55);
 }
 
 .dark {
-  --background: oklch(0.16 0.02 276);
-  --foreground: oklch(0.96 0.01 276);
-  --ink: oklch(0.96 0.01 276);
-  --card: oklch(0.2 0.02 276);
-  --card-foreground: oklch(0.96 0.01 276);
-  --popover: oklch(0.2 0.02 276);
-  --popover-foreground: oklch(0.96 0.01 276);
-  --primary: oklch(0.68 0.18 276);
-  --primary-foreground: oklch(0.15 0.02 276);
-  --brand: oklch(0.68 0.18 276);
-  --brand-foreground: oklch(0.15 0.02 276);
-  --brand-2: oklch(0.8 0.15 68);
+  --background: oklch(0.16 0.03 258);
+  --foreground: oklch(0.96 0.008 258);
+  --ink: oklch(0.96 0.008 258);
+  --card: oklch(0.2 0.035 258);
+  --card-foreground: oklch(0.96 0.008 258);
+  --popover: oklch(0.2 0.035 258);
+  --popover-foreground: oklch(0.96 0.008 258);
+  --primary: oklch(0.74 0.17 55);
+  --primary-foreground: oklch(0.16 0.03 258);
+  --brand: oklch(0.74 0.17 55);
+  --brand-foreground: oklch(0.16 0.03 258);
+  --brand-2: oklch(0.82 0.14 68);
   --brand-2-foreground: oklch(0.2 0.05 68);
-  --secondary: oklch(0.27 0.02 276);
-  --secondary-foreground: oklch(0.96 0.01 276);
-  --muted: oklch(0.27 0.02 276);
-  --muted-foreground: oklch(0.72 0.02 276);
-  --accent: oklch(0.3 0.05 276);
-  --accent-foreground: oklch(0.96 0.01 276);
+  --brand-navy: oklch(0.14 0.04 258);
+  --secondary: oklch(0.27 0.03 258);
+  --secondary-foreground: oklch(0.96 0.008 258);
+  --muted: oklch(0.27 0.03 258);
+  --muted-foreground: oklch(0.72 0.02 258);
+  --accent: oklch(0.3 0.06 55);
+  --accent-foreground: oklch(0.96 0.008 258);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.6 0.15 276);
-  --chart-1: oklch(0.65 0.2 276);
-  --chart-2: oklch(0.78 0.16 68);
+  --ring: oklch(0.72 0.15 55);
+  --chart-1: oklch(0.72 0.17 55);
+  --chart-2: oklch(0.65 0.1 258);
   --chart-3: oklch(0.68 0.15 190);
   --chart-4: oklch(0.7 0.2 330);
   --chart-5: oklch(0.65 0.18 140);
-  --sidebar: oklch(0.13 0.02 276);
-  --sidebar-foreground: oklch(0.96 0.01 276);
-  --sidebar-primary: oklch(0.68 0.18 276);
+  --sidebar: oklch(0.13 0.035 258);
+  --sidebar-foreground: oklch(0.96 0.008 258);
+  --sidebar-primary: oklch(0.74 0.17 55);
   --sidebar-primary-foreground: oklch(0.15 0 0);
-  --sidebar-accent: oklch(0.22 0.03 276);
-  --sidebar-accent-foreground: oklch(0.96 0.01 276);
+  --sidebar-accent: oklch(0.22 0.04 258);
+  --sidebar-accent-foreground: oklch(0.96 0.008 258);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.6 0.15 276);
+  --sidebar-ring: oklch(0.72 0.15 55);
 }
 
 @layer base {
@@ -186,7 +191,7 @@
     @apply font-sans scroll-smooth;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading;
+    @apply font-heading tracking-tight;
   }
 }
 

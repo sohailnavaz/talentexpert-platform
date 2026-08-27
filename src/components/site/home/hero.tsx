@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, PlayCircle, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, PlayCircle, Sparkles } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Spotlight } from "@/components/ui-fx/spotlight";
@@ -7,6 +7,7 @@ import { Meteors } from "@/components/ui-fx/meteors";
 import { AnimatedBadge, GradientText } from "@/components/ui-fx/gradient-text";
 import { NumberTicker } from "@/components/ui-fx/number-ticker";
 import { EnquiryDialog } from "@/components/site/enquiry-dialog";
+import { BrandWatermark } from "@/components/site/brand-watermark";
 
 export function Hero({
   studentsCount,
@@ -18,11 +19,12 @@ export function Hero({
   hiringPartners: number;
 }) {
   return (
-    <section className="relative overflow-hidden bg-[oklch(0.16_0.03_276)] text-white">
+    <section className="relative overflow-hidden bg-brand-navy text-white">
       <div className="absolute inset-0 bg-grid opacity-[0.15]" />
       <Spotlight />
+      <BrandWatermark className="-right-32 -top-32 sm:-right-20 sm:-top-20" />
       <Meteors count={14} />
-      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[oklch(0.16_0.03_276)] to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-brand-navy to-transparent" />
 
       <div className="relative mx-auto flex max-w-7xl flex-col items-center px-4 pb-16 pt-16 text-center sm:px-6 sm:pb-24 sm:pt-24 lg:px-8">
         <Link href="/batches">
@@ -44,7 +46,7 @@ export function Hero({
             render={<Link href="/courses" />}
             nativeButton={false}
             size="lg"
-            className="w-full bg-white text-[oklch(0.16_0.03_276)] hover:bg-white/90 sm:w-auto"
+            className="w-full bg-white text-brand-navy hover:bg-white/90 sm:w-auto"
           >
             Explore Courses <ArrowRight className="h-4 w-4" />
           </Button>
@@ -58,12 +60,7 @@ export function Hero({
           </EnquiryDialog>
         </div>
 
-        <div className="mt-6 flex items-center gap-1.5 text-xs text-white/50">
-          <ShieldCheck className="h-3.5 w-3.5" />
-          Secure checkout · UPI, cards & net banking supported
-        </div>
-
-        <div className="mt-14 grid w-full max-w-3xl grid-cols-3 gap-4 border-t border-white/10 pt-8">
+        <div className="mt-10 grid w-full max-w-3xl grid-cols-3 gap-4 border-t border-white/10 pt-8">
           <Stat value={studentsCount} suffix="+" label="Students trained" />
           <Stat value={coursesCount} suffix="+" label="Live courses" />
           <Stat value={hiringPartners} suffix="+" label="Hiring partners" />

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Spotlight } from "@/components/ui-fx/spotlight";
+import { BrandWatermark } from "@/components/site/brand-watermark";
 
 export function PageHero({
   eyebrow,
@@ -13,9 +14,10 @@ export function PageHero({
   children?: ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden bg-[oklch(0.16_0.03_276)] text-white">
+    <section className="relative overflow-hidden bg-brand-navy text-white">
       <div className="absolute inset-0 bg-grid opacity-[0.12]" />
       <Spotlight />
+      <BrandWatermark />
       <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
         {eyebrow ? (
           <span className="mb-3 inline-block rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/80">

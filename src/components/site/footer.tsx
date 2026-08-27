@@ -1,21 +1,17 @@
 import Link from "next/link";
-import { GraduationCap, Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 import { InstagramIcon, LinkedinIcon, YoutubeIcon } from "@/components/icons/brand-icons";
+import { Logo } from "@/components/site/logo";
 import { siteConfig, footerLinks } from "@/lib/site-config";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-secondary/40 pb-24 sm:pb-10">
+    <footer className="border-t border-border bg-secondary/40 pb-10">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 lg:grid-cols-6">
           <div className="col-span-2 lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                <GraduationCap className="h-5 w-5" />
-              </span>
-              <span className="font-heading text-lg font-bold">
-                Talent<span className="text-primary">Expert</span>
-              </span>
+            <Link href="/">
+              <Logo />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
               {siteConfig.description}

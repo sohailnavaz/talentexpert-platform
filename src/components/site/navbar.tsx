@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GraduationCap, Menu, Phone, Search } from "lucide-react";
+import { Menu, Phone, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mainNav, siteConfig } from "@/lib/site-config";
+import { Logo } from "@/components/site/logo";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Sheet,
@@ -49,13 +50,8 @@ export function Navbar() {
       )}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex shrink-0 items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-            <GraduationCap className="h-5 w-5" />
-          </span>
-          <span className="font-heading text-lg font-bold tracking-tight">
-            Talent<span className="text-primary">Expert</span>
-          </span>
+        <Link href="/" className="shrink-0">
+          <Logo />
         </Link>
 
         <NavigationMenu className="hidden lg:flex">
@@ -140,9 +136,7 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] sm:w-[340px]">
               <SheetHeader>
-                <SheetTitle className="font-heading text-left">
-                  Talent<span className="text-primary">Expert</span>
-                </SheetTitle>
+                <SheetTitle render={<Logo />} />
               </SheetHeader>
               <div className="flex flex-col gap-1 px-4">
                 {mainNav.map((item) => (
