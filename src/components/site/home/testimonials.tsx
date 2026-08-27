@@ -8,7 +8,7 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
   if (testimonials.length === 0) return null;
 
   return (
-    <section className="overflow-hidden py-20">
+    <section className="overflow-hidden py-14 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
           eyebrow="Student voices"
@@ -16,7 +16,7 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
           description="Real feedback from students who enrolled, learned, and moved forward."
         />
       </div>
-      <Reveal className="mt-12">
+      <Reveal className="mt-8 sm:mt-12">
         <Marquee pauseOnHover className="[--gap:1.25rem]">
           {testimonials.map((t) => (
             <figure

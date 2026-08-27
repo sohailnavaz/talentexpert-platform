@@ -14,7 +14,7 @@ export function FeaturedCourses({
   if (courses.length === 0) return null;
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+    <section className="mx-auto max-w-7xl px-4 py-14 sm:py-20 sm:px-6 lg:px-8">
       <div className="flex flex-col items-center justify-between gap-6 sm:flex-row sm:items-end">
         <SectionHeading
           align="left"
@@ -33,7 +33,7 @@ export function FeaturedCourses({
         </Button>
       </div>
 
-      <RevealStagger className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <RevealStagger className="mt-8 sm:mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {courses.map((course) => (
           <RevealItem key={course.id}>
             <CourseCard course={course} />

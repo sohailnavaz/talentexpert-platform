@@ -9,7 +9,7 @@ export function PlacementsWall({ placements }: { placements: Placement[] }) {
   if (placements.length === 0) return null;
 
   return (
-    <section className="overflow-hidden bg-secondary/40 py-20">
+    <section className="overflow-hidden bg-secondary/40 py-14 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
           eyebrow="Placements"
@@ -17,7 +17,7 @@ export function PlacementsWall({ placements }: { placements: Placement[] }) {
           description="A snapshot of learners who turned a course into a career move."
         />
       </div>
-      <Reveal className="mt-12">
+      <Reveal className="mt-8 sm:mt-12">
         <Marquee pauseOnHover className="[--gap:1.25rem]">
           {placements.map((p) => (
             <div

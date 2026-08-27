@@ -10,13 +10,13 @@ export function BlogPreview({ posts }: { posts: BlogPost[] }) {
   if (posts.length === 0) return null;
 
   return (
-    <section className="bg-secondary/40 py-20">
+    <section className="bg-secondary/40 py-14 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
           eyebrow="From the blog"
           title="Career tips, interview prep & industry notes"
         />
-        <RevealStagger className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <RevealStagger className="mt-8 sm:mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (
             <RevealItem key={post.id}>
               <Link

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 export function FinalCta() {
   return (
-    <section className="relative overflow-hidden bg-[oklch(0.16_0.03_276)] py-20 text-white">
+    <section className="relative overflow-hidden bg-[oklch(0.16_0.03_276)] py-14 sm:py-20 text-white">
       <Spotlight className="opacity-100" />
       <Reveal className="relative mx-auto flex max-w-3xl flex-col items-center px-4 text-center sm:px-6 lg:px-8">
         <h2 className="text-balance font-heading text-3xl font-bold sm:text-4xl">

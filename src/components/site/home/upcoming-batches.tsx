@@ -14,13 +14,13 @@ export function UpcomingBatches({
   if (batches.length === 0) return null;
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+    <section className="mx-auto max-w-7xl px-4 py-14 sm:py-20 sm:px-6 lg:px-8">
       <SectionHeading
         eyebrow="Don't miss the batch"
         title="Upcoming batches"
         description="Live, instructor-led batches starting soon — seats are limited and fill up fast."
       />
-      <RevealStagger className="mx-auto mt-10 flex max-w-4xl flex-col gap-4">
+      <RevealStagger className="mx-auto mt-8 sm:mt-10 flex max-w-4xl flex-col gap-4">
         {batches.map((batch) => (
           <RevealItem key={batch.id}>
             <BatchCard batch={batch} />

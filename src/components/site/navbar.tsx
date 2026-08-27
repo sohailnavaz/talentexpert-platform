@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { EnquiryDialog } from "@/components/site/enquiry-dialog";
 import { SiteSearch } from "@/components/site/site-search";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -107,6 +108,7 @@ export function Navbar() {
           >
             <Search className="h-4.5 w-4.5" />
           </Button>
+          <ThemeToggle />
           <a
             href={siteConfig.phoneHref}
             className="hidden items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground xl:flex"
@@ -175,6 +177,10 @@ export function Navbar() {
                 >
                   Student Login
                 </SheetClose>
+                <div className="flex items-center justify-between py-3">
+                  <span className="font-medium text-foreground">Theme</span>
+                  <ThemeToggle className="border border-border" />
+                </div>
                 <div className="mt-2 flex flex-col gap-2">
                   <Button variant="outline" render={<a href={siteConfig.phoneHref} />} nativeButton={false}>
                     <Phone className="h-4 w-4" /> Call us
