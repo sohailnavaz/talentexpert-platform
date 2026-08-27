@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { createStudentSession } from "@/lib/auth/session";
-import { findOrCreateStudent } from "@/lib/student-provisioning";
+import { findOrCreateStudent, studentHasConverted } from "@/lib/student-provisioning";
 import { generateEnrollmentCode } from "@/lib/enrollment-code";
 import { getActiveOffer, computeEffectiveFee } from "@/lib/pricing";
 
@@ -58,7 +58,15 @@ export async function startFreePreview(
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Please check your details." };
   }
 
-  const student = await findOrCreateStudent(parsed.data);
+  const { student, isNew } = await findOrCreateStudent(parsed.data);
+
+  if (!isNew && (await studentHasConverted(student.id))) {
+    return {
+      ok: false,
+      message: "An account already exists for this email. Please sign in instead.",
+    };
+  }
+
   const enrollment = await ensureTrialEnrollment(student.id, batchId);
   if (!enrollment) return { ok: false, message: "This batch could not be found." };
 

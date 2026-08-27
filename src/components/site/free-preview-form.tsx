@@ -3,6 +3,7 @@
 import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,19 @@ export function FreePreviewForm({ batchId }: { batchId: string }) {
         <Label htmlFor="preview-phone">Phone</Label>
         <Input id="preview-phone" name="phone" placeholder="10-digit mobile" required />
       </div>
-      {!state.ok && state.message ? <p className="text-sm text-destructive">{state.message}</p> : null}
+      {!state.ok && state.message ? (
+        <p className="text-sm text-destructive">
+          {state.message}
+          {state.message.includes("Please sign in") ? (
+            <>
+              {" "}
+              <Link href="/login" className="underline underline-offset-2">
+                Sign in
+              </Link>
+            </>
+          ) : null}
+        </p>
+      ) : null}
       <SubmitButton />
       <p className="text-center text-xs text-muted-foreground">
         No payment required. We&apos;ll create your free student account to save your progress.

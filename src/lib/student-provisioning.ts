@@ -10,10 +10,10 @@ export async function findOrCreateStudent(details: {
   whatsapp?: string;
 }) {
   const existing = await db.student.findUnique({ where: { email: details.email } });
-  if (existing) return existing;
+  if (existing) return { student: existing, isNew: false };
 
   const unusablePasswordHash = await hashPassword(crypto.randomUUID());
-  return db.student.create({
+  const student = await db.student.create({
     data: {
       name: details.name,
       email: details.email,
@@ -22,4 +22,10 @@ export async function findOrCreateStudent(details: {
       passwordHash: unusablePasswordHash,
     },
   });
+  return { student, isNew: true };
+}
+
+export async function studentHasConverted(studentId: string) {
+  const count = await db.enrollment.count({ where: { studentId, status: "PAID", isTrial: false } });
+  return count > 0;
 }

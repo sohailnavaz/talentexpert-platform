@@ -107,7 +107,7 @@ export async function startCheckout(batchId: string, details: CheckoutDetails): 
     };
   }
 
-  const student = await findOrCreateStudent(parsed.data);
+  const { student } = await findOrCreateStudent(parsed.data);
   const existingTrial = await db.enrollment.findFirst({
     where: { studentId: student.id, batchId: batch.id, isTrial: true },
   });

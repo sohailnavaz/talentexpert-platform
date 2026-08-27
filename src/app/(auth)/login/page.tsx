@@ -25,6 +25,12 @@ export default function StudentLoginPage() {
             Browse courses
           </Link>
         </div>
+        <p className="border-t border-white/10 pt-4 text-center text-xs text-white/50">
+          New here?{" "}
+          <Link href="/signup" className="text-white hover:underline">
+            Create a free account
+          </Link>
+        </p>
       </CardContent>
     </Card>
   );
