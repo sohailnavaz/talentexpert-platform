@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { getSiteContactInfo } from "@/lib/site-settings";
+import { appendRowToSheet } from "@/lib/google-sheets";
 
 const leadSchema = z.object({
   name: z.string().trim().min(2, "Please enter your name"),
@@ -62,6 +63,15 @@ export async function submitLead(
     contact.whatsappNumber,
     `New enquiry: ${name} (${phone})${courseInterest ? ` — interested in ${courseInterest}` : ""}. Email: ${email}${message ? `\nMessage: ${message}` : ""}`
   );
+  await appendRowToSheet(process.env.GOOGLE_SHEETS_LEADS_TAB || "Sheet1", [
+    new Date().toISOString(),
+    name,
+    email,
+    phone,
+    courseInterest ?? "",
+    message ?? "",
+    sourcePage ?? "",
+  ]);
 
   return { ok: true, message: "Thanks! Our team will reach out to you shortly." };
 }
