@@ -4,7 +4,7 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { CredentialsForm } from "@/components/auth/credentials-form";
 import { loginAdmin } from "@/lib/actions/auth";
 
-export const metadata: Metadata = { title: "Admin Login" };
+export const metadata: Metadata = { title: "Admin Login", robots: { index: false, follow: false } };
 
 export default function AdminLoginPage() {
   return (

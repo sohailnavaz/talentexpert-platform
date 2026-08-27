@@ -1,10 +1,14 @@
 import type { ReactNode } from "react";
 import { Suspense } from "react";
+import { GoogleTagManager } from "@next/third-parties/google";
 import { Navbar } from "@/components/site/navbar";
 import { Footer } from "@/components/site/footer";
 import { AnnouncementBar } from "@/components/site/announcement-bar";
+import { Analytics } from "@/components/analytics";
 import { getSiteContactInfo } from "@/lib/site-settings";
 import { siteConfig } from "@/lib/site-config";
+
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
 export default async function SiteLayout({ children }: { children: ReactNode }) {
   const contact = await getSiteContactInfo();
@@ -24,6 +28,8 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
 
   return (
     <div className="flex min-h-svh flex-col">
+      {GTM_ID ? <GoogleTagManager gtmId={GTM_ID} /> : null}
+      <Analytics />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}

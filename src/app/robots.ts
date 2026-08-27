@@ -6,7 +6,11 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/portal", "/portal/", "/admin", "/admin/", "/trainer", "/trainer/", "/api/"],
+      // /admin, /portal and /trainer are deliberately NOT listed here — a public
+      // disallow list just advertises exactly which paths are worth probing.
+      // They're kept out of search results via a noindex meta tag on each
+      // instead, which doesn't require broadcasting the path to do it.
+      disallow: ["/api/"],
     },
     sitemap: `${siteConfig.url}/sitemap.xml`,
   };

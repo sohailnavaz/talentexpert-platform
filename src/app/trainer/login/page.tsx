@@ -4,7 +4,7 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { CredentialsForm } from "@/components/auth/credentials-form";
 import { loginTrainer } from "@/lib/actions/auth";
 
-export const metadata: Metadata = { title: "Trainer Login" };
+export const metadata: Metadata = { title: "Trainer Login", robots: { index: false, follow: false } };
 
 export default function TrainerLoginPage() {
   return (

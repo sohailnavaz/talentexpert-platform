@@ -38,6 +38,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogoMark } from "@/components/site/logo";
 import { verifyAdminSession } from "@/lib/auth/dal";
 import { logoutAdmin } from "@/lib/actions/auth";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 const NAV_GROUPS = [
   {

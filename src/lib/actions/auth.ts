@@ -14,6 +14,9 @@ import {
   destroyStudentSession,
   destroyTrainerSession,
 } from "@/lib/auth/session";
+import { isRateLimited, recordFailedAttempt, clearAttempts } from "@/lib/rate-limit";
+
+const RATE_LIMIT_MESSAGE = "Too many attempts. Please wait a few minutes and try again.";
 
 const credentialsSchema = z.object({
   email: z.email("Enter a valid email"),
@@ -37,16 +40,24 @@ export async function loginStudent(
     return { ok: false, message: "Enter a valid email and password." };
   }
 
+  const rateLimitKey = `login:student:${parsed.data.email.toLowerCase()}`;
+  if (isRateLimited(rateLimitKey)) {
+    return { ok: false, message: RATE_LIMIT_MESSAGE };
+  }
+
   const student = await db.student.findUnique({ where: { email: parsed.data.email } });
   if (!student || !student.active) {
+    recordFailedAttempt(rateLimitKey);
     return { ok: false, message: "We couldn't find an account with those details." };
   }
 
   const valid = await verifyPassword(parsed.data.password, student.passwordHash);
   if (!valid) {
+    recordFailedAttempt(rateLimitKey);
     return { ok: false, message: "Incorrect email or password." };
   }
 
+  clearAttempts(rateLimitKey);
   await createStudentSession({ studentId: student.id, name: student.name, email: student.email });
   redirect("/portal");
 }
@@ -68,16 +79,24 @@ export async function loginAdmin(
     return { ok: false, message: "Enter a valid email and password." };
   }
 
+  const rateLimitKey = `login:admin:${parsed.data.email.toLowerCase()}`;
+  if (isRateLimited(rateLimitKey)) {
+    return { ok: false, message: RATE_LIMIT_MESSAGE };
+  }
+
   const admin = await db.adminUser.findUnique({ where: { email: parsed.data.email } });
   if (!admin || !admin.active) {
+    recordFailedAttempt(rateLimitKey);
     return { ok: false, message: "We couldn't find an account with those details." };
   }
 
   const valid = await verifyPassword(parsed.data.password, admin.passwordHash);
   if (!valid) {
+    recordFailedAttempt(rateLimitKey);
     return { ok: false, message: "Incorrect email or password." };
   }
 
+  clearAttempts(rateLimitKey);
   await db.adminUser.update({ where: { id: admin.id }, data: { lastLoginAt: new Date() } });
   await createAdminSession({
     adminId: admin.id,
@@ -105,16 +124,24 @@ export async function loginTrainer(
     return { ok: false, message: "Enter a valid email and password." };
   }
 
+  const rateLimitKey = `login:trainer:${parsed.data.email.toLowerCase()}`;
+  if (isRateLimited(rateLimitKey)) {
+    return { ok: false, message: RATE_LIMIT_MESSAGE };
+  }
+
   const trainer = await db.trainer.findUnique({ where: { email: parsed.data.email } });
   if (!trainer || !trainer.active || !trainer.passwordHash) {
+    recordFailedAttempt(rateLimitKey);
     return { ok: false, message: "We couldn't find an account with those details." };
   }
 
   const valid = await verifyPassword(parsed.data.password, trainer.passwordHash);
   if (!valid) {
+    recordFailedAttempt(rateLimitKey);
     return { ok: false, message: "Incorrect email or password." };
   }
 
+  clearAttempts(rateLimitKey);
   await createTrainerSession({ trainerId: trainer.id, name: trainer.name, email: parsed.data.email });
   redirect("/trainer");
 }
@@ -137,6 +164,12 @@ export async function requestPasswordReset(
   if (!parsed.success) {
     return { ok: false, message: "Enter a valid email address." };
   }
+
+  const rateLimitKey = `reset:${parsed.data.email.toLowerCase()}`;
+  if (isRateLimited(rateLimitKey)) {
+    return { ok: false, message: RATE_LIMIT_MESSAGE };
+  }
+  recordFailedAttempt(rateLimitKey);
 
   const student = await db.student.findUnique({ where: { email: parsed.data.email } });
   if (student && student.active) {

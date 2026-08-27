@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { LayoutDashboard, LogOut } from "lucide-react";
@@ -19,6 +20,8 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getCurrentTrainer } from "@/lib/auth/dal";
 import { logoutTrainer } from "@/lib/actions/auth";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 const NAV = [{ label: "Dashboard", href: "/trainer", icon: LayoutDashboard }];
 

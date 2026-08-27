@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { BookOpen, LayoutDashboard, LogOut, Receipt, UserRound } from "lucide-react";
@@ -19,6 +20,8 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getCurrentStudent } from "@/lib/auth/dal";
 import { logoutStudent } from "@/lib/actions/auth";
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 const NAV = [
   { label: "Dashboard", href: "/portal", icon: LayoutDashboard },
