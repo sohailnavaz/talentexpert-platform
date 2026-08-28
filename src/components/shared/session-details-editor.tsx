@@ -96,7 +96,7 @@ export function SessionDetailsEditor({
         <Input
           value={joinUrl}
           onChange={(e) => setJoinUrl(e.target.value)}
-          placeholder="https://meet.google.com/..."
+          placeholder="Zoom / Google Meet / Teams link"
           className="h-8 text-xs"
         />
       )}

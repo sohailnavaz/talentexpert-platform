@@ -48,7 +48,7 @@ export function AddSessionForm({
           A video room will be created automatically for this session.
         </p>
       ) : (
-        <Input name="joinUrl" placeholder="https://meet.google.com/..." required />
+        <Input name="joinUrl" placeholder="Zoom / Google Meet / Teams link" required />
       )}
       <Button type="submit" disabled={pending} className="w-full">
         <Plus className="h-4 w-4" /> Add session
