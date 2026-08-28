@@ -1,28 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import {
-  BadgeIndianRupee,
-  BookOpen,
-  CalendarRange,
-  FileText,
-  Gift,
-  History,
-  LayoutDashboard,
-  LogOut,
-  Megaphone,
-  MessageSquare,
-  Newspaper,
-  Quote,
-  Receipt,
-  Settings,
-  ShieldCheck,
-  Star,
-  Tags,
-  Trophy,
-  Users,
-  Users2,
-  Video,
-} from "lucide-react";
+import { LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -42,60 +20,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogoMark } from "@/components/site/logo";
 import { verifyAdminSession } from "@/lib/auth/dal";
 import { logoutAdmin } from "@/lib/actions/auth";
+import { ADMIN_NAV_GROUPS } from "@/lib/admin-nav";
+import { AdminCommandPalette } from "@/components/admin/admin-command-palette";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
-
-const NAV_GROUPS = [
-  {
-    label: "Overview",
-    items: [{ label: "Dashboard", href: "/admin", icon: LayoutDashboard }],
-  },
-  {
-    label: "Catalogue",
-    items: [
-      { label: "Courses", href: "/admin/courses", icon: BookOpen },
-      { label: "Categories", href: "/admin/categories", icon: Tags },
-      { label: "Batches", href: "/admin/batches", icon: CalendarRange },
-      { label: "Offers & Coupons", href: "/admin/offers", icon: Gift },
-    ],
-  },
-  {
-    label: "People & Money",
-    items: [
-      { label: "Students", href: "/admin/students", icon: Users },
-      { label: "Enrolments", href: "/admin/enrolments", icon: FileText },
-      { label: "Payments", href: "/admin/payments", icon: BadgeIndianRupee },
-    ],
-  },
-  {
-    label: "Engagement",
-    items: [
-      { label: "Announcements", href: "/admin/announcements", icon: Megaphone },
-      { label: "Live Classes", href: "/admin/live-classes", icon: Video },
-      { label: "Leads / Enquiries", href: "/admin/leads", icon: MessageSquare },
-      { label: "Reviews", href: "/admin/reviews", icon: Star },
-      { label: "Testimonials", href: "/admin/testimonials", icon: Quote },
-      { label: "Placements", href: "/admin/placements", icon: Trophy },
-    ],
-  },
-  {
-    label: "Content",
-    items: [
-      { label: "Blog", href: "/admin/blog", icon: Newspaper },
-      { label: "Job Openings", href: "/admin/jobs", icon: Receipt },
-      { label: "Trainers", href: "/admin/trainers", icon: Users2 },
-    ],
-  },
-  {
-    label: "System",
-    items: [
-      { label: "Users & Roles", href: "/admin/users", icon: ShieldCheck },
-      { label: "Site Settings", href: "/admin/settings", icon: Settings },
-      { label: "Audit Log", href: "/admin/audit-log", icon: History },
-    ],
-  },
-];
 
 export default async function AdminDashboardLayout({ children }: { children: ReactNode }) {
   const session = await verifyAdminSession();
@@ -112,7 +41,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
           </Link>
         </SidebarHeader>
         <SidebarContent>
-          {NAV_GROUPS.map((group) => (
+          {ADMIN_NAV_GROUPS.map((group) => (
             <SidebarGroup key={group.label}>
               <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
               <SidebarGroupContent>
@@ -160,6 +89,9 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
         <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4">
           <SidebarTrigger />
           <span className="font-heading text-sm font-semibold">Talent Expert Admin</span>
+          <div className="ml-auto">
+            <AdminCommandPalette />
+          </div>
         </header>
         <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
       </SidebarInset>
