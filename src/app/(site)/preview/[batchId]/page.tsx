@@ -11,6 +11,7 @@ import { VideoEmbed } from "@/components/site/video-embed";
 import { FreePreviewForm } from "@/components/site/free-preview-form";
 import { formatDate, formatINR, modeLabels } from "@/lib/format";
 import { getActiveOffer, computeEffectiveFee } from "@/lib/pricing";
+import { resolveVideoPlaybackUrl } from "@/lib/storage";
 
 export const metadata: Metadata = { title: "Free intro class" };
 
@@ -42,6 +43,7 @@ export default async function FreePreviewPage({
   if (studentSession) {
     await ensureTrialEnrollment(studentSession.studentId, batch.id);
   }
+  const playbackUrl = studentSession ? await resolveVideoPlaybackUrl(previewSession.recordingUrl) : null;
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-12 sm:px-6 lg:py-16">
@@ -53,9 +55,13 @@ export default async function FreePreviewPage({
         </p>
       </div>
 
-      {studentSession ? (
+      {studentSession && playbackUrl ? (
         <>
-          <VideoEmbed url={previewSession.recordingUrl} title={previewSession.topic} />
+          <VideoEmbed
+            url={playbackUrl}
+            title={previewSession.topic}
+            watermark={{ name: studentSession.name, email: studentSession.email }}
+          />
           <div className="flex flex-col items-start gap-3 rounded-2xl border border-primary/20 bg-primary/[0.04] p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-heading font-semibold">Like what you see?</p>

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/accordion";
 import { BatchMessageThread } from "@/components/portal/batch-message-thread";
 import { VideoEmbed } from "@/components/site/video-embed";
+import { resolveVideoPlaybackUrl } from "@/lib/storage";
 import { formatDate, formatINR, modeLabels } from "@/lib/format";
 import { googleCalendarUrl } from "@/lib/calendar";
 import { getActiveOffer, computeEffectiveFee } from "@/lib/pricing";
@@ -57,7 +58,14 @@ export default async function CourseWorkspacePage({
     const hoursLeft = enrollment.trialExpiresAt
       ? Math.max(0, Math.ceil((enrollment.trialExpiresAt.getTime() - now.getTime()) / (60 * 60 * 1000)))
       : null;
-    const previewSessions = batch.sessions.filter((s) => s.isFreePreview);
+    const previewSessions = await Promise.all(
+      batch.sessions
+        .filter((s) => s.isFreePreview)
+        .map(async (s) => ({
+          ...s,
+          playbackUrl: s.recordingUrl ? await resolveVideoPlaybackUrl(s.recordingUrl) : null,
+        }))
+    );
     const lockedSessions = batch.sessions.filter((s) => !s.isFreePreview);
     const previewMaterials = batch.materials.filter((m) => m.isFreePreview);
     const lockedMaterials = batch.materials.filter((m) => !m.isFreePreview);
@@ -88,10 +96,14 @@ export default async function CourseWorkspacePage({
               ) : (
                 <div className="mt-3 space-y-4">
                   {previewSessions.map((s) =>
-                    s.recordingUrl ? (
+                    s.playbackUrl ? (
                       <div key={s.id}>
                         <p className="mb-2 text-sm font-medium">{s.topic}</p>
-                        <VideoEmbed url={s.recordingUrl} title={s.topic} />
+                        <VideoEmbed
+                          url={s.playbackUrl}
+                          title={s.topic}
+                          watermark={{ name: session.name, email: session.email }}
+                        />
                       </div>
                     ) : (
                       <Card key={s.id}>

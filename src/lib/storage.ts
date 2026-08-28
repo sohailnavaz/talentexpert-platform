@@ -2,7 +2,7 @@ import "server-only";
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
@@ -76,4 +76,25 @@ export async function createPresignedUploadUrl(
   const command = new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType });
   const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 15 * 60 });
   return { uploadUrl, publicUrl: `${publicBaseUrl.replace(/\/$/, "")}/${key}` };
+}
+
+const VIEW_URL_EXPIRY_SECONDS = 4 * 60 * 60;
+
+/**
+ * If `url` points at our own storage bucket, swap it for a short-lived signed
+ * GET URL so a saved link can't be replayed/redistributed indefinitely.
+ * Anything else (YouTube, Vimeo, some other host) is returned unchanged.
+ */
+export async function resolveVideoPlaybackUrl(url: string): Promise<string> {
+  const s3 = getS3Client();
+  const bucket = process.env.S3_BUCKET;
+  const publicBaseUrl = process.env.S3_PUBLIC_BASE_URL;
+  if (!s3 || !bucket || !publicBaseUrl) return url;
+
+  const prefix = `${publicBaseUrl.replace(/\/$/, "")}/`;
+  if (!url.startsWith(prefix)) return url;
+
+  const key = url.slice(prefix.length);
+  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+  return getSignedUrl(s3, command, { expiresIn: VIEW_URL_EXPIRY_SECONDS });
 }
