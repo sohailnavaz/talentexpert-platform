@@ -57,6 +57,46 @@ export async function createAnnouncement(
   return { ok: true, message: "Announcement published." };
 }
 
+export async function updateAnnouncement(
+  id: string,
+  _prev: AdminFormState,
+  formData: FormData
+): Promise<AdminFormState> {
+  const session = await verifyAdminSession();
+  requireRole(session, ["SUPER_ADMIN", "COORDINATOR", "EDITOR"]);
+
+  const parsed = schema.safeParse({
+    title: formData.get("title"),
+    body: formData.get("body"),
+    audience: formData.get("audience") ?? "BOTH",
+    priority: formData.get("priority") || undefined,
+    showPopup: formData.get("showPopup") === "on",
+    startAt: formData.get("startAt"),
+    endAt: formData.get("endAt") || undefined,
+  });
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Please check the form." };
+  }
+  const d = parsed.data;
+
+  await db.announcement.update({
+    where: { id },
+    data: {
+      title: d.title,
+      body: d.body,
+      audience: d.audience,
+      priority: d.priority ?? 0,
+      showPopup: d.showPopup ?? false,
+      startAt: new Date(d.startAt),
+      endAt: d.endAt ? new Date(d.endAt) : null,
+    },
+  });
+
+  revalidatePath("/admin/announcements");
+  revalidatePath("/");
+  return { ok: true, message: "Announcement updated." };
+}
+
 export async function toggleAnnouncementActive(id: string, active: boolean) {
   await verifyAdminSession();
   await db.announcement.update({ where: { id }, data: { active } });

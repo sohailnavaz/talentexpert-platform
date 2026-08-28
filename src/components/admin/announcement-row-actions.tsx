@@ -7,17 +7,21 @@ import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
+import { AnnouncementEditDialog } from "@/components/admin/announcement-edit-dialog";
 import {
   deleteAnnouncement,
   sendAnnouncementEmail,
   toggleAnnouncementActive,
 } from "@/lib/actions/admin-announcements";
+import type { Announcement } from "@/generated/prisma";
 
 export function AnnouncementRowActions({
+  announcement,
   id,
   active,
   audience,
 }: {
+  announcement: Announcement;
   id: string;
   active: boolean;
   audience: "WEBSITE" | "PORTAL" | "BOTH";
@@ -43,6 +47,7 @@ export function AnnouncementRowActions({
           <Mail className="h-3.5 w-3.5" /> Email students
         </Button>
       ) : null}
+      <AnnouncementEditDialog announcement={announcement} />
       <Switch
         checked={active}
         disabled={pending}
