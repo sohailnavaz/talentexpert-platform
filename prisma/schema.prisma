@@ -65,6 +65,7 @@ model Student {
   badges          StudentBadge[]
   reviews         Review[]
   messages        BatchMessage[]
+  sessionViews    SessionParticipant[]
 
   @@index([email])
 }
@@ -114,9 +115,10 @@ model Trainer {
   otpExpiresAt       DateTime?
   createdAt          DateTime  @default(now())
 
-  courses  Course[]
-  batches  Batch[]
-  messages BatchMessage[]
+  courses      Course[]
+  batches      Batch[]
+  messages     BatchMessage[]
+  sessionViews SessionParticipant[]
 
   @@index([email])
 }
@@ -384,9 +386,27 @@ model ClassSession {
   reminderSentAt DateTime?
   createdAt      DateTime  @default(now())
 
-  attendances Attendance[]
+  attendances  Attendance[]
+  participants SessionParticipant[]
 
   @@index([batchId])
+}
+
+model SessionParticipant {
+  id             String       @id @default(cuid())
+  classSessionId String
+  classSession   ClassSession @relation(fields: [classSessionId], references: [id], onDelete: Cascade)
+  studentId      String?
+  student        Student?     @relation(fields: [studentId], references: [id])
+  trainerId      String?
+  trainer        Trainer?     @relation(fields: [trainerId], references: [id])
+  dailySessionId String       @unique
+  joinedAt       DateTime
+  leftAt         DateTime?
+  durationSecs   Int?
+  createdAt      DateTime     @default(now())
+
+  @@index([classSessionId])
 }
 
 model Material {

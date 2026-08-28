@@ -2,13 +2,13 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { BellRing, Download, Pencil, PlayCircle, Plus, Trash2 } from "lucide-react";
+import { BellRing, Download, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { formatDate } from "@/lib/format";
 import { saveUploadedFileAction } from "@/lib/actions/uploads";
+import { SessionRecordingRow } from "@/components/shared/session-recording-row";
 import {
   addMaterial,
   addSession,
@@ -117,44 +117,6 @@ function SessionDetailsEditor({
   );
 }
 
-function SessionRecordingRow({ session, batchId }: { session: SessionItem; batchId: string }) {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  const [recordingUrl, setRecordingUrl] = useState(session.recordingUrl ?? "");
-  const [isFreePreview, setIsFreePreview] = useState(session.isFreePreview);
-
-  return (
-    <div className="mt-2 flex flex-col gap-1.5 rounded-lg bg-secondary/40 p-2">
-      <Input
-        value={recordingUrl}
-        onChange={(e) => setRecordingUrl(e.target.value)}
-        placeholder="Recording URL (YouTube, Vimeo, or direct video link)"
-        className="h-8 text-xs"
-      />
-      <div className="flex items-center justify-between gap-2">
-        <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Checkbox checked={isFreePreview} onCheckedChange={(v) => setIsFreePreview(v === true)} />
-          <PlayCircle className="h-3 w-3" /> Free intro preview
-        </label>
-        <Button
-          type="button"
-          size="xs"
-          disabled={pending}
-          onClick={() =>
-            startTransition(async () => {
-              await updateSessionRecording(session.id, batchId, { recordingUrl, isFreePreview });
-              toast.success("Session updated.");
-              router.refresh();
-            })
-          }
-        >
-          Save
-        </Button>
-      </div>
-    </div>
-  );
-}
-
 export function SessionsMaterialsManager({
   batchId,
   sessions,
@@ -225,7 +187,11 @@ export function SessionsMaterialsManager({
                 }
                 onDelete={() => startTransition(async () => { await deleteSession(s.id, batchId); router.refresh(); })}
               />
-              <SessionRecordingRow session={s} batchId={batchId} />
+              <SessionRecordingRow
+                recordingUrl={s.recordingUrl}
+                isFreePreview={s.isFreePreview}
+                onSave={(data) => updateSessionRecording(s.id, batchId, data)}
+              />
             </div>
           ))}
         </div>

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { verifyAdminSession, requireRole } from "@/lib/auth/dal";
 import { saveSiteContactInfo } from "@/lib/site-settings";
 import { logActivity } from "@/lib/audit";
+import { registerDailyWebhook } from "@/lib/daily";
 import type { AdminFormState } from "@/lib/actions/admin-courses";
 
 const schema = z.object({
@@ -55,4 +56,26 @@ export async function updateSiteContactInfo(
 
   revalidatePath("/", "layout");
   return { ok: true, message: "Contact info updated." };
+}
+
+export async function registerDailyWebhookAction(): Promise<{ ok: boolean; message: string }> {
+  const session = await verifyAdminSession();
+  requireRole(session, ["SUPER_ADMIN"]);
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const secret = process.env.DAILY_WEBHOOK_SECRET;
+  if (!siteUrl || !secret) {
+    return {
+      ok: false,
+      message: "Set NEXT_PUBLIC_SITE_URL and DAILY_WEBHOOK_SECRET before registering the webhook.",
+    };
+  }
+
+  const success = await registerDailyWebhook(`${siteUrl}/api/webhooks/daily`, secret);
+  if (!success) {
+    return { ok: false, message: "Registration failed — check DAILY_API_KEY is set and valid." };
+  }
+
+  await logActivity(session.adminId, "settings.register_daily_webhook", "Settings", "daily-webhook");
+  return { ok: true, message: "Daily webhook registered." };
 }

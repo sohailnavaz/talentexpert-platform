@@ -3,10 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, Download, FileText, Megaphone, MessageSquare, Users, Video, X } from "lucide-react";
 import { verifyTrainerSession } from "@/lib/auth/dal";
-import { getAttendanceForBatch, getBatchForTrainer } from "@/lib/data/trainer-portal";
+import { getAttendanceForBatch, getBatchForTrainer, getSessionParticipants } from "@/lib/data/trainer-portal";
+import { SessionViewersPanel } from "@/components/shared/session-viewers-panel";
 import { getBatchMessages, postTrainerBatchMessage } from "@/lib/actions/batch-messages";
 import { saveAttendance } from "@/lib/actions/attendance";
 import { createBatchAnnouncement, deleteBatchAnnouncement } from "@/lib/actions/trainer-announcements";
+import { updateSessionRecordingAsTrainer } from "@/lib/actions/trainer-sessions";
+import { SessionRecordingRow } from "@/components/shared/session-recording-row";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,11 +37,13 @@ export default async function TrainerBatchPage({
   const batch = await getBatchForTrainer(session.trainerId, batchId);
   if (!batch) notFound();
 
-  const [attendance, messages] = await Promise.all([
+  const [attendance, messages, participantsBySession] = await Promise.all([
     getAttendanceForBatch(batch.id),
     getBatchMessages(batch.id),
+    Promise.all(batch.sessions.map((s) => getSessionParticipants(s.id))),
   ]);
   const attendanceMap = new Map(attendance.map((a) => [`${a.classSessionId}_${a.enrollmentId}`, a.present]));
+  const viewersMap = new Map(batch.sessions.map((s, i) => [s.id, participantsBySession[i]]));
   const postMessage = postTrainerBatchMessage.bind(null, batch.id, `/trainer/batches/${batch.id}`);
 
   return (
@@ -78,14 +83,22 @@ export default async function TrainerBatchPage({
                       >
                         <Video className="h-3.5 w-3.5" /> Start / join class
                       </Button>
-                      <AttendanceForm
-                        action={saveAttendance.bind(null, s.id, `/trainer/batches/${batch.id}`)}
-                        students={batch.enrollments.map((e) => ({
-                          enrollmentId: e.id,
-                          name: e.student.name,
-                          present: attendanceMap.get(`${s.id}_${e.id}`) ?? false,
-                        }))}
+                      <SessionRecordingRow
+                        recordingUrl={s.recordingUrl}
+                        isFreePreview={s.isFreePreview}
+                        onSave={updateSessionRecordingAsTrainer.bind(null, s.id, batch.id)}
                       />
+                      <SessionViewersPanel participants={viewersMap.get(s.id) ?? []} />
+                      <div className="mt-3">
+                        <AttendanceForm
+                          action={saveAttendance.bind(null, s.id, `/trainer/batches/${batch.id}`)}
+                          students={batch.enrollments.map((e) => ({
+                            enrollmentId: e.id,
+                            name: e.student.name,
+                            present: attendanceMap.get(`${s.id}_${e.id}`) ?? false,
+                          }))}
+                        />
+                      </div>
                     </AccordionContent>
                   </AccordionItem>
                 ))}

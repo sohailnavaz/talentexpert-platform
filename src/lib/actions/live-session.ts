@@ -23,6 +23,7 @@ export async function joinClassSession(sessionId: string): Promise<JoinClassSess
     const token = await createMeetingToken(classSession.roomName, {
       userName: studentSession.name,
       isOwner: false,
+      userId: `student:${studentSession.studentId}`,
     });
     return { ok: true, roomUrl: classSession.joinUrl, token };
   }
@@ -37,6 +38,7 @@ export async function joinClassSession(sessionId: string): Promise<JoinClassSess
     const token = await createMeetingToken(classSession.roomName, {
       userName: trainerSession.name,
       isOwner: true,
+      userId: `trainer:${trainerSession.trainerId}`,
     });
     return { ok: true, roomUrl: classSession.joinUrl, token };
   }

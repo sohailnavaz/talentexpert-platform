@@ -40,3 +40,24 @@ export async function getBatchForTrainer(trainerId: string, batchId: string) {
 export async function getAttendanceForBatch(batchId: string) {
   return db.attendance.findMany({ where: { classSession: { batchId } } });
 }
+
+export async function getSessionParticipants(classSessionId: string) {
+  const rows = await db.sessionParticipant.findMany({
+    where: { classSessionId },
+    include: {
+      student: { select: { name: true } },
+      trainer: { select: { name: true } },
+    },
+    orderBy: { joinedAt: "desc" },
+  });
+
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.student?.name ?? r.trainer?.name ?? "Unknown",
+    role: r.studentId ? ("STUDENT" as const) : ("TRAINER" as const),
+    joinedAt: r.joinedAt,
+    leftAt: r.leftAt,
+    durationSecs: r.durationSecs,
+    isLive: r.leftAt === null,
+  }));
+}

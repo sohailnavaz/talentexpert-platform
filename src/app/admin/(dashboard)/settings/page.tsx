@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { verifyAdminSession, requireRole } from "@/lib/auth/dal";
 import { getSiteContactInfo } from "@/lib/site-settings";
 import { SiteSettingsForm } from "@/components/admin/site-settings-form";
+import { DailyWebhookCard } from "@/components/admin/daily-webhook-card";
 
 export const metadata: Metadata = { title: "Site Settings" };
 
@@ -20,6 +21,7 @@ export default async function AdminSettingsPage() {
         </p>
       </div>
       <SiteSettingsForm contact={contact} />
+      <DailyWebhookCard />
     </div>
   );
 }

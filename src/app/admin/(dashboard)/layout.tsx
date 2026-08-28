@@ -17,8 +17,11 @@ import {
   Settings,
   ShieldCheck,
   Star,
+  Tags,
+  Trophy,
   Users,
   Users2,
+  Video,
 } from "lucide-react";
 import {
   Sidebar,
@@ -52,6 +55,7 @@ const NAV_GROUPS = [
     label: "Catalogue",
     items: [
       { label: "Courses", href: "/admin/courses", icon: BookOpen },
+      { label: "Categories", href: "/admin/categories", icon: Tags },
       { label: "Batches", href: "/admin/batches", icon: CalendarRange },
       { label: "Offers & Coupons", href: "/admin/offers", icon: Gift },
     ],
@@ -68,9 +72,11 @@ const NAV_GROUPS = [
     label: "Engagement",
     items: [
       { label: "Announcements", href: "/admin/announcements", icon: Megaphone },
+      { label: "Live Classes", href: "/admin/live-classes", icon: Video },
       { label: "Leads / Enquiries", href: "/admin/leads", icon: MessageSquare },
       { label: "Reviews", href: "/admin/reviews", icon: Star },
       { label: "Testimonials", href: "/admin/testimonials", icon: Quote },
+      { label: "Placements", href: "/admin/placements", icon: Trophy },
     ],
   },
   {

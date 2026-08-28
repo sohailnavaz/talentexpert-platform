@@ -1,4 +1,5 @@
 import "server-only";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 const API_BASE = "https://api.daily.co/v1";
 
@@ -45,7 +46,7 @@ export async function deleteDailyRoom(roomName: string): Promise<void> {
 
 export async function createMeetingToken(
   roomName: string,
-  opts: { userName: string; isOwner: boolean }
+  opts: { userName: string; isOwner: boolean; userId?: string }
 ): Promise<string | null> {
   const key = apiKey();
   if (!key) return null;
@@ -54,7 +55,12 @@ export async function createMeetingToken(
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      properties: { room_name: roomName, user_name: opts.userName, is_owner: opts.isOwner },
+      properties: {
+        room_name: roomName,
+        user_name: opts.userName,
+        is_owner: opts.isOwner,
+        ...(opts.userId ? { user_id: opts.userId } : {}),
+      },
     }),
   });
   if (!res.ok) {
@@ -63,4 +69,42 @@ export async function createMeetingToken(
   }
   const data = await res.json();
   return data.token as string;
+}
+
+export async function registerDailyWebhook(url: string, secret: string): Promise<boolean> {
+  const key = apiKey();
+  if (!key) return false;
+
+  const res = await fetch(`${API_BASE}/webhooks`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      url,
+      eventTypes: ["participant.joined", "participant.left"],
+      hmac: secret,
+    }),
+  });
+  if (!res.ok) {
+    console.error(`[daily:register-webhook-failed] status=${res.status} ${await res.text()}`);
+    return false;
+  }
+  return true;
+}
+
+export function verifyDailyWebhookSignature(
+  rawBody: string,
+  timestamp: string,
+  signature: string
+): boolean {
+  const secret = process.env.DAILY_WEBHOOK_SECRET;
+  if (!secret) return false;
+
+  const expected = createHmac("sha256", secret)
+    .update(`${timestamp}.${rawBody}`)
+    .digest("base64");
+
+  const expectedBuf = Buffer.from(expected);
+  const actualBuf = Buffer.from(signature);
+  if (expectedBuf.length !== actualBuf.length) return false;
+  return timingSafeEqual(expectedBuf, actualBuf);
 }
