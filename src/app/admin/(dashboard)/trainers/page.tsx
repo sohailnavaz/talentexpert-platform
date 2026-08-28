@@ -17,11 +17,26 @@ import { TrainerResetPasswordButton } from "@/components/admin/trainer-reset-pas
 import { deleteTrainer } from "@/lib/actions/admin-trainers";
 import { formatDate } from "@/lib/format";
 import { describeDevice } from "@/lib/user-agent";
+import { SearchParamInput } from "@/components/shared/search-param-input";
+import { ParamSelect } from "@/components/shared/param-select";
 
 export const metadata: Metadata = { title: "Trainers" };
 
-export default async function AdminTrainersPage() {
+const STATUS_OPTIONS = { active: "Active", inactive: "Inactive" };
+const ACCESS_OPTIONS = { yes: "Has portal access", no: "No portal access" };
+
+export default async function AdminTrainersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string; access?: string }>;
+}) {
+  const { q, status, access } = await searchParams;
   const trainers = await db.trainer.findMany({
+    where: {
+      ...(q ? { name: { contains: q, mode: "insensitive" } } : {}),
+      ...(status === "active" ? { active: true } : status === "inactive" ? { active: false } : {}),
+      ...(access === "yes" ? { email: { not: null } } : access === "no" ? { email: null } : {}),
+    },
     orderBy: { name: "asc" },
     include: { _count: { select: { courses: true } } },
   });
@@ -36,6 +51,12 @@ export default async function AdminTrainersPage() {
         <Button render={<Link href="/admin/trainers/new" />} nativeButton={false}>
           <Plus className="h-4 w-4" /> Add Trainer
         </Button>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <SearchParamInput placeholder="Search by name" className="max-w-sm" />
+        <ParamSelect paramKey="status" options={STATUS_OPTIONS} allLabel="All statuses" />
+        <ParamSelect paramKey="access" options={ACCESS_OPTIONS} allLabel="All portal access" className="sm:w-[200px]" />
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">

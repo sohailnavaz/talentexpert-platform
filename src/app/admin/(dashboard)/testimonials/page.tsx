@@ -5,11 +5,36 @@ import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/format";
 import { TestimonialFormDialog } from "@/components/admin/testimonial-form-dialog";
 import { TestimonialRowActions } from "@/components/admin/testimonial-row-actions";
+import { SearchParamInput } from "@/components/shared/search-param-input";
+import { ParamSelect } from "@/components/shared/param-select";
+import type { Prisma } from "@/generated/prisma";
 
 export const metadata: Metadata = { title: "Testimonials" };
 
-export default async function AdminTestimonialsPage() {
-  const testimonials = await db.testimonial.findMany({ orderBy: { createdAt: "desc" } });
+const STATUS_OPTIONS = { active: "Visible", hidden: "Hidden" };
+const RATING_OPTIONS = { "5": "5 stars", "4": "4 stars", "3": "3 stars", "2": "2 stars", "1": "1 star" };
+
+export default async function AdminTestimonialsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string; rating?: string }>;
+}) {
+  const { q, status, rating } = await searchParams;
+
+  const where: Prisma.TestimonialWhereInput = {
+    ...(q
+      ? {
+          OR: [
+            { studentName: { contains: q, mode: "insensitive" } },
+            { quote: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+    ...(status === "active" ? { active: true } : status === "hidden" ? { active: false } : {}),
+    ...(rating && rating in RATING_OPTIONS ? { rating: Number(rating) } : {}),
+  };
+
+  const testimonials = await db.testimonial.findMany({ where, orderBy: { createdAt: "desc" } });
 
   return (
     <div className="space-y-6">
@@ -21,6 +46,12 @@ export default async function AdminTestimonialsPage() {
           </p>
         </div>
         <TestimonialFormDialog />
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <SearchParamInput placeholder="Search by student or quote" className="max-w-sm" />
+        <ParamSelect paramKey="status" options={STATUS_OPTIONS} allLabel="All" />
+        <ParamSelect paramKey="rating" options={RATING_OPTIONS} allLabel="All ratings" />
       </div>
 
       <div className="flex flex-col gap-3">

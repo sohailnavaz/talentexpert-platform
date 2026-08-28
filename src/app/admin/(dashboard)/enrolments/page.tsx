@@ -13,6 +13,9 @@ import {
 } from "@/components/ui/table";
 import { formatDate, formatINR } from "@/lib/format";
 import { setEnrollmentCompletionAsAdmin } from "@/lib/actions/admin-enrolments";
+import { SearchParamInput } from "@/components/shared/search-param-input";
+import { ParamSelect } from "@/components/shared/param-select";
+import type { EnrollmentStatus, Prisma } from "@/generated/prisma";
 
 export const metadata: Metadata = { title: "Enrolments" };
 
@@ -23,8 +26,32 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive"> = {
   REFUNDED: "secondary",
 };
 
-export default async function AdminEnrolmentsPage() {
+const STATUS_OPTIONS = { PENDING: "Pending", PAID: "Paid", FAILED: "Failed", REFUNDED: "Refunded" };
+const COMPLETION_OPTIONS = { yes: "Completed", no: "Not completed" };
+
+export default async function AdminEnrolmentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string; completion?: string }>;
+}) {
+  const { q, status, completion } = await searchParams;
+
+  const where: Prisma.EnrollmentWhereInput = {
+    ...(q
+      ? {
+          OR: [
+            { student: { name: { contains: q, mode: "insensitive" } } },
+            { student: { email: { contains: q, mode: "insensitive" } } },
+            { enrollmentCode: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+    ...(status && status in STATUS_OPTIONS ? { status: status as EnrollmentStatus } : {}),
+    ...(completion === "yes" ? { completedAt: { not: null } } : completion === "no" ? { completedAt: null } : {}),
+  };
+
   const enrollments = await db.enrollment.findMany({
+    where,
     orderBy: { createdAt: "desc" },
     include: { student: true, batch: { include: { course: true } } },
     take: 200,
@@ -35,6 +62,17 @@ export default async function AdminEnrolmentsPage() {
       <div>
         <h1 className="font-heading text-2xl font-bold">Enrolments</h1>
         <p className="mt-1 text-sm text-muted-foreground">{enrollments.length} shown (most recent 200)</p>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <SearchParamInput placeholder="Search by student, email, or code" className="max-w-sm" />
+        <ParamSelect paramKey="status" options={STATUS_OPTIONS} allLabel="All statuses" />
+        <ParamSelect
+          paramKey="completion"
+          options={COMPLETION_OPTIONS}
+          allLabel="All completion"
+          className="sm:w-[180px]"
+        />
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">

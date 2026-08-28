@@ -4,11 +4,37 @@ import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { ReviewRowActions } from "@/components/admin/review-row-actions";
+import { SearchParamInput } from "@/components/shared/search-param-input";
+import { ParamSelect } from "@/components/shared/param-select";
+import type { Prisma } from "@/generated/prisma";
 
 export const metadata: Metadata = { title: "Reviews" };
 
-export default async function AdminReviewsPage() {
+const STATUS_OPTIONS = { visible: "Visible", hidden: "Hidden" };
+const RATING_OPTIONS = { "5": "5 stars", "4": "4 stars", "3": "3 stars", "2": "2 stars", "1": "1 star" };
+
+export default async function AdminReviewsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string; rating?: string }>;
+}) {
+  const { q, status, rating } = await searchParams;
+
+  const where: Prisma.ReviewWhereInput = {
+    ...(q
+      ? {
+          OR: [
+            { authorName: { contains: q, mode: "insensitive" } },
+            { comment: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+    ...(status === "visible" ? { hidden: false } : status === "hidden" ? { hidden: true } : {}),
+    ...(rating && rating in RATING_OPTIONS ? { rating: Number(rating) } : {}),
+  };
+
   const reviews = await db.review.findMany({
+    where,
     orderBy: { createdAt: "desc" },
     include: { course: { select: { title: true } } },
   });
@@ -20,6 +46,12 @@ export default async function AdminReviewsPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           Moderate course reviews. Hidden reviews stay in the database but don&apos;t show publicly.
         </p>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <SearchParamInput placeholder="Search by author or comment" className="max-w-sm" />
+        <ParamSelect paramKey="status" options={STATUS_OPTIONS} allLabel="All" />
+        <ParamSelect paramKey="rating" options={RATING_OPTIONS} allLabel="All ratings" />
       </div>
 
       <div className="flex flex-col gap-3">

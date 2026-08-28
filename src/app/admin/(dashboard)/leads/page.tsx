@@ -12,11 +12,36 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
 import { LeadStatusSelect } from "@/components/admin/lead-status-select";
+import { SearchParamInput } from "@/components/shared/search-param-input";
+import { ParamSelect } from "@/components/shared/param-select";
+import type { LeadStatus, Prisma } from "@/generated/prisma";
 
 export const metadata: Metadata = { title: "Leads / Enquiries" };
 
-export default async function AdminLeadsPage() {
+const STATUS_OPTIONS = { NEW: "New", CONTACTED: "Contacted", CONVERTED: "Converted", CLOSED: "Closed" };
+
+export default async function AdminLeadsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string }>;
+}) {
+  const { q, status } = await searchParams;
+
+  const where: Prisma.LeadWhereInput = {
+    ...(q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { email: { contains: q, mode: "insensitive" } },
+            { phone: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+    ...(status && status in STATUS_OPTIONS ? { status: status as LeadStatus } : {}),
+  };
+
   const leads = await db.lead.findMany({
+    where,
     orderBy: { createdAt: "desc" },
     take: 300,
   });
@@ -31,6 +56,11 @@ export default async function AdminLeadsPage() {
         <Button variant="outline" render={<a href="/api/admin/leads/export" />} nativeButton={false}>
           <Download className="h-4 w-4" /> Export CSV
         </Button>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <SearchParamInput placeholder="Search by name, email, or phone" className="max-w-sm" />
+        <ParamSelect paramKey="status" options={STATUS_OPTIONS} allLabel="All statuses" />
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">

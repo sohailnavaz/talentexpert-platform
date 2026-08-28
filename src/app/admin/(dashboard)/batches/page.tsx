@@ -15,11 +15,30 @@ import {
 import { formatDate, formatINR, modeLabels, batchStatusLabels } from "@/lib/format";
 import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { deleteBatch } from "@/lib/actions/admin-batches";
+import { SearchParamInput } from "@/components/shared/search-param-input";
+import { ParamSelect } from "@/components/shared/param-select";
+import type { BatchStatus, DeliveryMode, Prisma } from "@/generated/prisma";
 
 export const metadata: Metadata = { title: "Batches" };
 
-export default async function AdminBatchesPage() {
+const STATUS_OPTIONS = { UPCOMING: "Upcoming", ONGOING: "Ongoing", COMPLETED: "Completed" };
+const MODE_OPTIONS = Object.fromEntries(Object.entries(modeLabels));
+
+export default async function AdminBatchesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string; mode?: string }>;
+}) {
+  const { q, status, mode } = await searchParams;
+
+  const where: Prisma.BatchWhereInput = {
+    ...(q ? { course: { title: { contains: q, mode: "insensitive" } } } : {}),
+    ...(status && status in STATUS_OPTIONS ? { status: status as BatchStatus } : {}),
+    ...(mode && mode in MODE_OPTIONS ? { mode: mode as DeliveryMode } : {}),
+  };
+
   const batches = await db.batch.findMany({
+    where,
     orderBy: { startDate: "desc" },
     include: { course: true, trainer: true },
   });
@@ -34,6 +53,12 @@ export default async function AdminBatchesPage() {
         <Button render={<Link href="/admin/batches/new" />} nativeButton={false}>
           <Plus className="h-4 w-4" /> Add Batch
         </Button>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <SearchParamInput placeholder="Search by course title" className="max-w-sm" />
+        <ParamSelect paramKey="status" options={STATUS_OPTIONS} allLabel="All statuses" />
+        <ParamSelect paramKey="mode" options={MODE_OPTIONS} allLabel="All modes" />
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">

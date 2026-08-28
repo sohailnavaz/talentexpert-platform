@@ -3,11 +3,35 @@ import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 import { PlacementFormDialog } from "@/components/admin/placement-form-dialog";
 import { PlacementRowActions } from "@/components/admin/placement-row-actions";
+import { SearchParamInput } from "@/components/shared/search-param-input";
+import { ParamSelect } from "@/components/shared/param-select";
+import type { Prisma } from "@/generated/prisma";
 
 export const metadata: Metadata = { title: "Placements" };
 
-export default async function AdminPlacementsPage() {
-  const placements = await db.placement.findMany({ orderBy: { createdAt: "desc" } });
+const STATUS_OPTIONS = { active: "Visible", hidden: "Hidden" };
+
+export default async function AdminPlacementsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string }>;
+}) {
+  const { q, status } = await searchParams;
+
+  const where: Prisma.PlacementWhereInput = {
+    ...(q
+      ? {
+          OR: [
+            { studentName: { contains: q, mode: "insensitive" } },
+            { company: { contains: q, mode: "insensitive" } },
+            { role: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+    ...(status === "active" ? { active: true } : status === "hidden" ? { active: false } : {}),
+  };
+
+  const placements = await db.placement.findMany({ where, orderBy: { createdAt: "desc" } });
 
   return (
     <div className="space-y-6">
@@ -19,6 +43,11 @@ export default async function AdminPlacementsPage() {
           </p>
         </div>
         <PlacementFormDialog />
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <SearchParamInput placeholder="Search by student, company, or role" className="max-w-sm" />
+        <ParamSelect paramKey="status" options={STATUS_OPTIONS} allLabel="All" />
       </div>
 
       <div className="flex flex-col gap-3">

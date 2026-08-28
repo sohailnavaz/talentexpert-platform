@@ -13,12 +13,28 @@ import {
 import { formatDate } from "@/lib/format";
 import { NewCouponDialog } from "@/components/admin/new-coupon-dialog";
 import { CouponRowActions } from "@/components/admin/coupon-row-actions";
+import { SearchParamInput } from "@/components/shared/search-param-input";
+import { ParamSelect } from "@/components/shared/param-select";
+import type { Prisma } from "@/generated/prisma";
 
 export const metadata: Metadata = { title: "Offers & Coupons" };
 
-export default async function AdminOffersPage() {
+const STATUS_OPTIONS = { active: "Active", disabled: "Disabled" };
+
+export default async function AdminOffersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string }>;
+}) {
+  const { q, status } = await searchParams;
+
+  const couponWhere: Prisma.CouponWhereInput = {
+    ...(q ? { code: { contains: q, mode: "insensitive" } } : {}),
+    ...(status === "active" ? { active: true } : status === "disabled" ? { active: false } : {}),
+  };
+
   const [coupons, offers] = await Promise.all([
-    db.coupon.findMany({ orderBy: { createdAt: "desc" } }),
+    db.coupon.findMany({ where: couponWhere, orderBy: { createdAt: "desc" } }),
     db.offer.findMany({
       where: { endAt: { gte: new Date() } },
       orderBy: { endAt: "asc" },
@@ -34,6 +50,11 @@ export default async function AdminOffersPage() {
           <p className="mt-1 text-sm text-muted-foreground">Site-wide coupon codes and live batch offers</p>
         </div>
         <NewCouponDialog />
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <SearchParamInput placeholder="Search by coupon code" className="max-w-sm" />
+        <ParamSelect paramKey="status" options={STATUS_OPTIONS} allLabel="All statuses" />
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">

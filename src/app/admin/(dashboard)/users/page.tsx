@@ -14,6 +14,9 @@ import { describeDevice } from "@/lib/user-agent";
 import { verifyAdminSession } from "@/lib/auth/dal";
 import { NewAdminDialog } from "@/components/admin/new-admin-dialog";
 import { AdminUserRowActions } from "@/components/admin/admin-user-row-actions";
+import { SearchParamInput } from "@/components/shared/search-param-input";
+import { ParamSelect } from "@/components/shared/param-select";
+import type { AdminRole, Prisma } from "@/generated/prisma";
 
 export const metadata: Metadata = { title: "Users & Roles" };
 
@@ -23,11 +26,26 @@ const ROLE_LABELS: Record<string, string> = {
   COORDINATOR: "Coordinator",
   EDITOR: "Editor",
 };
+const STATUS_OPTIONS = { active: "Active", disabled: "Disabled" };
 
-export default async function AdminUsersPage() {
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; role?: string; status?: string }>;
+}) {
   const session = await verifyAdminSession();
   const isSuperAdmin = session.role === "SUPER_ADMIN";
-  const admins = await db.adminUser.findMany({ orderBy: { createdAt: "asc" } });
+  const { q, role, status } = await searchParams;
+
+  const where: Prisma.AdminUserWhereInput = {
+    ...(q
+      ? { OR: [{ name: { contains: q, mode: "insensitive" } }, { email: { contains: q, mode: "insensitive" } }] }
+      : {}),
+    ...(role && role in ROLE_LABELS ? { role: role as AdminRole } : {}),
+    ...(status === "active" ? { active: true } : status === "disabled" ? { active: false } : {}),
+  };
+
+  const admins = await db.adminUser.findMany({ where, orderBy: { createdAt: "asc" } });
 
   return (
     <div className="space-y-6">
@@ -37,6 +55,12 @@ export default async function AdminUsersPage() {
           <p className="mt-1 text-sm text-muted-foreground">{admins.length} admin accounts</p>
         </div>
         {isSuperAdmin ? <NewAdminDialog /> : null}
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <SearchParamInput placeholder="Search by name or email" className="max-w-sm" />
+        <ParamSelect paramKey="role" options={ROLE_LABELS} allLabel="All roles" />
+        <ParamSelect paramKey="status" options={STATUS_OPTIONS} allLabel="All statuses" />
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">

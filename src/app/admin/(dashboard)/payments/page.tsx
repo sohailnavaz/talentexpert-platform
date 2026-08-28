@@ -10,6 +10,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDate, formatINR } from "@/lib/format";
+import { SearchParamInput } from "@/components/shared/search-param-input";
+import { ParamSelect } from "@/components/shared/param-select";
+import type { PaymentStatus, Prisma } from "@/generated/prisma";
 
 export const metadata: Metadata = { title: "Payments" };
 
@@ -20,8 +23,31 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive"> = {
   REFUNDED: "secondary",
 };
 
-export default async function AdminPaymentsPage() {
+const STATUS_OPTIONS = { CREATED: "Created", PAID: "Paid", FAILED: "Failed", REFUNDED: "Refunded" };
+
+export default async function AdminPaymentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string }>;
+}) {
+  const { q, status } = await searchParams;
+
+  const where: Prisma.PaymentWhereInput = {
+    ...(q
+      ? {
+          OR: [
+            { student: { name: { contains: q, mode: "insensitive" } } },
+            { student: { email: { contains: q, mode: "insensitive" } } },
+            { gatewayPaymentId: { contains: q, mode: "insensitive" } },
+            { gatewayOrderId: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+    ...(status && status in STATUS_OPTIONS ? { status: status as PaymentStatus } : {}),
+  };
+
   const payments = await db.payment.findMany({
+    where,
     orderBy: { createdAt: "desc" },
     include: { student: true, enrollment: { include: { batch: { include: { course: true } } } } },
     take: 200,
@@ -32,6 +58,11 @@ export default async function AdminPaymentsPage() {
       <div>
         <h1 className="font-heading text-2xl font-bold">Payments</h1>
         <p className="mt-1 text-sm text-muted-foreground">{payments.length} shown (most recent 200)</p>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <SearchParamInput placeholder="Search by student, email, or reference" className="max-w-sm" />
+        <ParamSelect paramKey="status" options={STATUS_OPTIONS} allLabel="All statuses" />
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">

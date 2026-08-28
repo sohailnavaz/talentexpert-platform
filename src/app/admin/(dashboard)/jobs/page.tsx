@@ -15,11 +15,35 @@ import {
 import { formatDate } from "@/lib/format";
 import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { deleteJobOpening } from "@/lib/actions/admin-jobs";
+import { SearchParamInput } from "@/components/shared/search-param-input";
+import { ParamSelect } from "@/components/shared/param-select";
+import type { Prisma } from "@/generated/prisma";
 
 export const metadata: Metadata = { title: "Job Openings" };
 
-export default async function AdminJobsPage() {
+const STATUS_OPTIONS = { active: "Active", closed: "Closed" };
+
+export default async function AdminJobsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string }>;
+}) {
+  const { q, status } = await searchParams;
+
+  const where: Prisma.JobOpeningWhereInput = {
+    ...(q
+      ? {
+          OR: [
+            { title: { contains: q, mode: "insensitive" } },
+            { location: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+    ...(status === "active" ? { active: true } : status === "closed" ? { active: false } : {}),
+  };
+
   const jobs = await db.jobOpening.findMany({
+    where,
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { applications: true } } },
   });
@@ -34,6 +58,11 @@ export default async function AdminJobsPage() {
         <Button render={<Link href="/admin/jobs/new" />} nativeButton={false}>
           <Plus className="h-4 w-4" /> New opening
         </Button>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <SearchParamInput placeholder="Search by role or location" className="max-w-sm" />
+        <ParamSelect paramKey="status" options={STATUS_OPTIONS} allLabel="All" />
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">

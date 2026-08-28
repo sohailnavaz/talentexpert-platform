@@ -39,7 +39,7 @@ export function CheckoutForm({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [razorpayReady, setRazorpayReady] = useState(false);
-  const [editingDetails, setEditingDetails] = useState(!knownStudent);
+  const [editingDetails, setEditingDetails] = useState(!knownStudent || !knownStudent.phone);
 
   function handleSubmit(formData: FormData) {
     setError(null);

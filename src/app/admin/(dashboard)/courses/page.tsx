@@ -15,11 +15,32 @@ import {
 import { formatINR } from "@/lib/format";
 import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { deleteCourse } from "@/lib/actions/admin-courses";
+import { SearchParamInput } from "@/components/shared/search-param-input";
+import { ParamSelect } from "@/components/shared/param-select";
+import type { CourseStatus, Prisma } from "@/generated/prisma";
 
 export const metadata: Metadata = { title: "Courses" };
 
-export default async function AdminCoursesPage() {
+const STATUS_OPTIONS = { DRAFT: "Draft", PUBLISHED: "Published" };
+const FEATURED_OPTIONS = { yes: "Featured", no: "Not featured" };
+
+export default async function AdminCoursesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string; category?: string; featured?: string }>;
+}) {
+  const { q, status, category, featured } = await searchParams;
+  const categories = await db.category.findMany({ orderBy: { name: "asc" } });
+
+  const where: Prisma.CourseWhereInput = {
+    ...(q ? { title: { contains: q, mode: "insensitive" } } : {}),
+    ...(status && status in STATUS_OPTIONS ? { status: status as CourseStatus } : {}),
+    ...(category ? { categoryId: category } : {}),
+    ...(featured === "yes" ? { featured: true } : featured === "no" ? { featured: false } : {}),
+  };
+
   const courses = await db.course.findMany({
+    where,
     orderBy: { createdAt: "desc" },
     include: { category: true, _count: { select: { batches: true } } },
   });
@@ -34,6 +55,18 @@ export default async function AdminCoursesPage() {
         <Button render={<Link href="/admin/courses/new" />} nativeButton={false}>
           <Plus className="h-4 w-4" /> Add Course
         </Button>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <SearchParamInput placeholder="Search by title" className="max-w-sm" />
+        <ParamSelect paramKey="status" options={STATUS_OPTIONS} allLabel="All statuses" />
+        <ParamSelect
+          paramKey="category"
+          options={Object.fromEntries(categories.map((c) => [c.id, c.name]))}
+          allLabel="All categories"
+          className="sm:w-[200px]"
+        />
+        <ParamSelect paramKey="featured" options={FEATURED_OPTIONS} allLabel="All courses" className="sm:w-[180px]" />
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">
