@@ -60,17 +60,20 @@ export async function sendEmail({
   to,
   subject,
   html,
+  attachments,
 }: {
   to: string;
   subject: string;
   html: string;
+  /** content must be base64-encoded — Resend's API JSON-encodes the payload, which corrupts a raw Buffer. */
+  attachments?: { filename: string; content: string; contentType?: string }[];
 }) {
   const body = layout(html);
   if (!resend) {
     console.log(`[email:dev-mode] to=${to} subject="${subject}"\n${html}`);
     return;
   }
-  const { error } = await resend.emails.send({ from, to, subject, html: body });
+  const { error } = await resend.emails.send({ from, to, subject, html: body, attachments });
   if (error) {
     console.error(`[email:failed] to=${to} subject="${subject}" — ${error.name}: ${error.message}`);
   }

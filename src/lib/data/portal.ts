@@ -69,3 +69,10 @@ export async function getStudentPayments(studentId: string) {
     orderBy: { createdAt: "desc" },
   });
 }
+
+export async function getPaymentForStudent(studentId: string, paymentId: string) {
+  return db.payment.findFirst({
+    where: { id: paymentId, studentId },
+    include: { student: true, enrollment: { include: { batch: { include: { course: true } } } } },
+  });
+}
