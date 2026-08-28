@@ -6,7 +6,6 @@ import { PageHero } from "@/components/site/page-hero";
 import { CourseFilters } from "@/components/site/course-filters";
 import { CourseCard } from "@/components/site/course-card";
 import { Button } from "@/components/ui/button";
-import { RevealItem, RevealStagger } from "@/components/ui-fx/reveal";
 import type { DeliveryMode } from "@/generated/prisma";
 
 export const metadata: Metadata = {
@@ -65,13 +64,11 @@ export default async function CoursesPage({
           </div>
         ) : (
           <>
-            <RevealStagger className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {pagedCourses.map((course) => (
-                <RevealItem key={course.id}>
-                  <CourseCard course={course} />
-                </RevealItem>
+                <CourseCard key={course.id} course={course} />
               ))}
-            </RevealStagger>
+            </div>
 
             {totalPages > 1 ? (
               <nav aria-label="Pagination" className="mt-10 flex items-center justify-center gap-2">

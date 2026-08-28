@@ -16,7 +16,8 @@ type BatchCardProps = {
 };
 
 export function BatchCard({ batch }: BatchCardProps) {
-  const freePreviewUrl = batch.sessions?.[0]?.recordingUrl ? `/preview/${batch.id}` : null;
+  const freePreviewUrl =
+    batch.course.trialEnabled && batch.sessions?.[0]?.recordingUrl ? `/preview/${batch.id}` : null;
   const offer = getActiveOffer(batch.offers);
   const { effectiveFee } = computeEffectiveFee(Number(batch.fee), offer);
   const seatsLeft = Math.max(0, batch.seatTotal - batch.seatsFilled);
