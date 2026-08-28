@@ -5,7 +5,45 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { getStudentSession } from "@/lib/auth/session";
+import { saveUploadedFile } from "@/lib/storage";
 import type { AuthFormState } from "@/lib/actions/auth";
+
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
+const ALLOWED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+export async function uploadAvatar(
+  _prev: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  const session = await getStudentSession();
+  if (!session) return { ok: false, message: "Your session has expired. Please sign in again." };
+
+  const file = formData.get("avatar");
+  if (!(file instanceof File) || file.size === 0) {
+    return { ok: false, message: "Choose a photo to upload." };
+  }
+  if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+    return { ok: false, message: "Please upload a JPEG, PNG, or WebP image." };
+  }
+  if (file.size > MAX_AVATAR_BYTES) {
+    return { ok: false, message: "Photo must be under 5MB." };
+  }
+
+  const avatarUrl = await saveUploadedFile(file);
+  await db.student.update({ where: { id: session.studentId }, data: { avatarUrl } });
+
+  revalidatePath("/portal/profile");
+  revalidatePath("/portal");
+  return { ok: true, message: "Photo updated." };
+}
+
+export async function removeAvatar(): Promise<void> {
+  const session = await getStudentSession();
+  if (!session) return;
+  await db.student.update({ where: { id: session.studentId }, data: { avatarUrl: null } });
+  revalidatePath("/portal/profile");
+  revalidatePath("/portal");
+}
 
 const profileSchema = z.object({
   name: z.string().trim().min(2, "Name is too short"),

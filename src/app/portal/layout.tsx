@@ -74,7 +74,9 @@ export default async function PortalLayout({ children }: { children: ReactNode }
             <SidebarMenuItem>
               <div className="flex items-center gap-2 px-2 py-1.5 group-data-[collapsible=icon]:hidden">
                 <Avatar className="h-8 w-8">
-                  {student ? <AvatarImage src={generateAvatarDataUri(student.id)} alt={student.name} /> : null}
+                  {student ? (
+                    <AvatarImage src={student.avatarUrl ?? generateAvatarDataUri(student.id)} alt={student.name} />
+                  ) : null}
                   <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">
                     {student?.name?.charAt(0) ?? "S"}
                   </AvatarFallback>
