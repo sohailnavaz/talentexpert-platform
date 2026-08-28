@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { startFreePreview } from "@/lib/actions/free-preview";
+import { GoogleSignInButton } from "@/components/auth/google-signin-button";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -58,6 +59,12 @@ export function FreePreviewForm({ batchId }: { batchId: string }) {
       <p className="text-center text-xs text-muted-foreground">
         No payment required. We&apos;ll create your free student account to save your progress.
       </p>
+      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+        <div className="h-px flex-1 bg-border" />
+        or
+        <div className="h-px flex-1 bg-border" />
+      </div>
+      <GoogleSignInButton />
     </form>
   );
 }

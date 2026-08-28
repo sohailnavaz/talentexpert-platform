@@ -6,8 +6,9 @@ import { hashPassword } from "@/lib/auth/password";
 export async function findOrCreateStudent(details: {
   name: string;
   email: string;
-  phone: string;
+  phone?: string;
   whatsapp?: string;
+  emailVerified?: boolean;
 }) {
   const existing = await db.student.findUnique({ where: { email: details.email } });
   if (existing) return { student: existing, isNew: false };
@@ -17,9 +18,10 @@ export async function findOrCreateStudent(details: {
     data: {
       name: details.name,
       email: details.email,
-      phone: details.phone,
+      phone: details.phone || "",
       whatsapp: details.whatsapp || null,
       passwordHash: unusablePasswordHash,
+      emailVerified: details.emailVerified ?? false,
     },
   });
   return { student, isNew: true };
