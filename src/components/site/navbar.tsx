@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Phone, Search } from "lucide-react";
+import { LayoutDashboard, LogOut, Menu, Phone, Search, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mainNav, siteConfig } from "@/lib/site-config";
 import { Logo } from "@/components/site/logo";
@@ -17,6 +17,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
@@ -27,8 +34,13 @@ import {
 import { EnquiryDialog } from "@/components/site/enquiry-dialog";
 import { SiteSearch } from "@/components/site/site-search";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { logoutStudent } from "@/lib/actions/auth";
 
-export function Navbar({ phone, phoneHref }: { phone?: string; phoneHref?: string } = {}) {
+export function Navbar({
+  phone,
+  phoneHref,
+  student,
+}: { phone?: string; phoneHref?: string; student?: { name: string } | null } = {}) {
   const displayPhone = phone ?? siteConfig.phone;
   const displayPhoneHref = phoneHref ?? siteConfig.phoneHref;
   const [scrolled, setScrolled] = useState(false);
@@ -114,15 +126,36 @@ export function Navbar({ phone, phoneHref }: { phone?: string; phoneHref?: strin
             <Phone className="h-4 w-4" />
             {displayPhone}
           </a>
-          <Button
-            render={<Link href="/login" />}
-            nativeButton={false}
-            variant="ghost"
-            size="sm"
-            className="hidden sm:inline-flex"
-          >
-            Student Login
-          </Button>
+          {student ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
+                    <UserRound className="h-4 w-4" /> {student.name.split(" ")[0]}
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem render={<Link href="/portal" />}>
+                  <LayoutDashboard className="h-4 w-4" /> My Portal
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onClick={() => { logoutStudent(); }}>
+                  <LogOut className="h-4 w-4" /> Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button
+              render={<Link href="/login" />}
+              nativeButton={false}
+              variant="ghost"
+              size="sm"
+              className="hidden sm:inline-flex"
+            >
+              Student Login
+            </Button>
+          )}
           <EnquiryDialog
             className={cn(buttonVariants({ size: "sm" }), "hidden sm:inline-flex")}
           >
@@ -141,6 +174,34 @@ export function Navbar({ phone, phoneHref }: { phone?: string; phoneHref?: strin
                 <SheetTitle render={<Logo />} />
               </SheetHeader>
               <div className="flex flex-col gap-1 px-4">
+                {student ? (
+                  <div className="mb-2 flex flex-col gap-1 border-b border-border/60 pb-3">
+                    <p className="py-1 text-sm text-muted-foreground">
+                      Signed in as <span className="font-medium text-foreground">{student.name}</span>
+                    </p>
+                    <SheetClose
+                      render={<Link href="/portal" />}
+                      nativeButton={false}
+                      className="flex items-center gap-2 py-2 font-medium text-foreground"
+                    >
+                      <LayoutDashboard className="h-4 w-4" /> My Portal
+                    </SheetClose>
+                    <SheetClose
+                      onClick={() => { logoutStudent(); }}
+                      className="flex items-center gap-2 py-2 text-left font-medium text-destructive"
+                    >
+                      <LogOut className="h-4 w-4" /> Log out
+                    </SheetClose>
+                  </div>
+                ) : (
+                  <SheetClose
+                    render={<Link href="/login" />}
+                    nativeButton={false}
+                    className="mb-2 border-b border-border/60 py-3 font-medium"
+                  >
+                    Student Login
+                  </SheetClose>
+                )}
                 {mainNav.map((item) => (
                   <div key={item.label} className="border-b border-border/60 py-1">
                     <SheetClose
@@ -166,13 +227,6 @@ export function Navbar({ phone, phoneHref }: { phone?: string; phoneHref?: strin
                     ) : null}
                   </div>
                 ))}
-                <SheetClose
-                  render={<Link href="/login" />}
-                  nativeButton={false}
-                  className="py-3 font-medium"
-                >
-                  Student Login
-                </SheetClose>
                 <div className="flex items-center justify-between py-3">
                   <span className="font-medium text-foreground">Theme</span>
                   <ThemeToggle className="border border-border" />

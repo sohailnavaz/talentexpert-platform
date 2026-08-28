@@ -9,13 +9,15 @@ import { Analytics } from "@/components/analytics";
 import { getSiteContactInfo } from "@/lib/site-settings";
 import { getActiveAnnouncements } from "@/lib/data/announcements";
 import { siteConfig } from "@/lib/site-config";
+import { getStudentSession } from "@/lib/auth/session";
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
 export default async function SiteLayout({ children }: { children: ReactNode }) {
-  const [contact, popupAnnouncements] = await Promise.all([
+  const [contact, popupAnnouncements, studentSession] = await Promise.all([
     getSiteContactInfo(),
     getActiveAnnouncements("WEBSITE", { popupOnly: true, take: 3 }),
+    getStudentSession(),
   ]);
 
   const organizationJsonLd = {
@@ -43,7 +45,11 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
       <Suspense fallback={null}>
         <AnnouncementBar />
       </Suspense>
-      <Navbar phone={contact.phone} phoneHref={contact.phoneHref} />
+      <Navbar
+        phone={contact.phone}
+        phoneHref={contact.phoneHref}
+        student={studentSession ? { name: studentSession.name } : null}
+      />
       <main className="flex-1">{children}</main>
       <Footer />
     </div>
