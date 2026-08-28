@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { LayoutDashboard, LogOut, UserRound } from "lucide-react";
+import { LayoutDashboard, LogOut, MessageCircle, UserRound } from "lucide-react";
 import { LogoMark } from "@/components/site/logo";
 import {
   Sidebar,
@@ -25,6 +25,7 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 const NAV = [
   { label: "Dashboard", href: "/trainer", icon: LayoutDashboard },
+  { label: "Messages", href: "/trainer/messages", icon: MessageCircle },
   { label: "My Profile", href: "/trainer/profile", icon: UserRound },
 ];
 

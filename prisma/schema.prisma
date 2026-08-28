@@ -66,6 +66,7 @@ model Student {
   reviews         Review[]
   messages        BatchMessage[]
   sessionViews    SessionParticipant[]
+  directMessages  DirectMessage[]
 
   @@index([email])
 }
@@ -115,10 +116,11 @@ model Trainer {
   otpExpiresAt       DateTime?
   createdAt          DateTime  @default(now())
 
-  courses      Course[]
-  batches      Batch[]
-  messages     BatchMessage[]
-  sessionViews SessionParticipant[]
+  courses        Course[]
+  batches        Batch[]
+  messages       BatchMessage[]
+  sessionViews   SessionParticipant[]
+  directMessages DirectMessage[]
 
   @@index([email])
 }
@@ -457,6 +459,20 @@ model BatchMessage {
   createdAt  DateTime          @default(now())
 
   @@index([batchId])
+}
+
+model DirectMessage {
+  id         String            @id @default(cuid())
+  studentId  String
+  student    Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  trainerId  String
+  trainer    Trainer           @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+  senderRole MessageAuthorRole
+  body       String            @db.Text
+  readAt     DateTime?
+  createdAt  DateTime          @default(now())
+
+  @@index([studentId, trainerId])
 }
 
 enum AnnouncementAudience {

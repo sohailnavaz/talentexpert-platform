@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { BookOpen, LayoutDashboard, LogOut, Receipt, UserRound } from "lucide-react";
+import { BookOpen, LayoutDashboard, LogOut, MessageCircle, Receipt, UserRound } from "lucide-react";
 import { LogoMark } from "@/components/site/logo";
 import {
   Sidebar,
@@ -31,6 +31,7 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 const NAV = [
   { label: "Dashboard", href: "/portal", icon: LayoutDashboard },
   { label: "My Courses", href: "/portal/courses", icon: BookOpen },
+  { label: "Messages", href: "/portal/messages", icon: MessageCircle },
   { label: "Payments", href: "/portal/payments", icon: Receipt },
   { label: "My Profile", href: "/portal/profile", icon: UserRound },
 ];
