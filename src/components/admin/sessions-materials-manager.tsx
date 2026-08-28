@@ -2,10 +2,11 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { BellRing, Download, Pencil, Plus, Trash2 } from "lucide-react";
+import { BellRing, Download, PlayCircle, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { formatDate } from "@/lib/format";
 import { saveUploadedFileAction } from "@/lib/actions/uploads";
 import { SessionRecordingRow } from "@/components/shared/session-recording-row";
@@ -14,6 +15,7 @@ import {
   addSession,
   deleteMaterial,
   deleteSession,
+  toggleMaterialFreePreview,
   updateSessionDetails,
   updateSessionRecording,
 } from "@/lib/actions/admin-batches";
@@ -29,7 +31,7 @@ type SessionItem = {
   recordingUrl: string | null;
   isFreePreview: boolean;
 };
-type MaterialItem = { id: string; title: string; fileUrl: string };
+type MaterialItem = { id: string; title: string; fileUrl: string; isFreePreview: boolean };
 
 function SessionDetailsEditor({
   session,
@@ -133,6 +135,7 @@ export function SessionsMaterialsManager({
   const sessionFormRef = useRef<HTMLFormElement>(null);
   const [materialTitle, setMaterialTitle] = useState("");
   const [materialFile, setMaterialFile] = useState<File | null>(null);
+  const [materialFreePreview, setMaterialFreePreview] = useState(false);
 
   function handleAddSession(formData: FormData) {
     const topic = String(formData.get("topic") ?? "");
@@ -158,9 +161,10 @@ export function SessionsMaterialsManager({
         const fd = new FormData();
         fd.set("file", materialFile);
         const fileUrl = await saveUploadedFileAction(fd);
-        await addMaterial(batchId, materialTitle.trim(), fileUrl);
+        await addMaterial(batchId, materialTitle.trim(), fileUrl, materialFreePreview);
         setMaterialTitle("");
         setMaterialFile(null);
+        setMaterialFreePreview(false);
         router.refresh();
       } catch {
         toast.error("Could not upload material.");
@@ -218,18 +222,33 @@ export function SessionsMaterialsManager({
         <h3 className="font-heading text-base font-semibold">Study materials</h3>
         <div className="mt-3 space-y-2">
           {materials.map((m) => (
-            <div key={m.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm">
-              <a href={m.fileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 truncate hover:text-primary">
-                <Download className="h-3.5 w-3.5 shrink-0" /> {m.title}
-              </a>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                disabled={pending}
-                onClick={() => startTransition(async () => { await deleteMaterial(m.id, batchId); router.refresh(); })}
-              >
-                <Trash2 className="h-3.5 w-3.5 text-destructive" />
-              </Button>
+            <div key={m.id} className="rounded-lg border border-border px-3 py-2 text-sm">
+              <div className="flex items-center justify-between gap-2">
+                <a href={m.fileUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 truncate hover:text-primary">
+                  <Download className="h-3.5 w-3.5 shrink-0" /> {m.title}
+                </a>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={pending}
+                  onClick={() => startTransition(async () => { await deleteMaterial(m.id, batchId); router.refresh(); })}
+                >
+                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                </Button>
+              </div>
+              <label className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Checkbox
+                  checked={m.isFreePreview}
+                  disabled={pending}
+                  onCheckedChange={(v) =>
+                    startTransition(async () => {
+                      await toggleMaterialFreePreview(m.id, batchId, v === true);
+                      router.refresh();
+                    })
+                  }
+                />
+                <PlayCircle className="h-3 w-3" /> Free preview
+              </label>
             </div>
           ))}
         </div>
@@ -240,6 +259,10 @@ export function SessionsMaterialsManager({
             onChange={(e) => setMaterialTitle(e.target.value)}
           />
           <Input type="file" onChange={(e) => setMaterialFile(e.target.files?.[0] ?? null)} />
+          <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Checkbox checked={materialFreePreview} onCheckedChange={(v) => setMaterialFreePreview(v === true)} />
+            <PlayCircle className="h-3 w-3" /> Free preview
+          </label>
           <Button
             type="button"
             disabled={pending || !materialTitle.trim() || !materialFile}

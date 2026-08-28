@@ -7,12 +7,18 @@ import { findOrCreateStudent, studentHasConverted } from "@/lib/student-provisio
 import { generateEnrollmentCode } from "@/lib/enrollment-code";
 import { getActiveOffer, computeEffectiveFee } from "@/lib/pricing";
 
+const TRIAL_DURATION_MS = 48 * 60 * 60 * 1000;
+
 export async function ensureTrialEnrollment(studentId: string, batchId: string) {
   const existing = await db.enrollment.findFirst({ where: { studentId, batchId } });
   if (existing) return existing;
 
-  const batch = await db.batch.findUnique({ where: { id: batchId }, include: { offers: true } });
+  const batch = await db.batch.findUnique({
+    where: { id: batchId },
+    include: { offers: true, course: { select: { trialEnabled: true } } },
+  });
   if (!batch) return null;
+  if (!batch.course.trialEnabled) return null;
 
   const offer = getActiveOffer(batch.offers);
   const { effectiveFee } = computeEffectiveFee(Number(batch.fee), offer);
@@ -28,6 +34,7 @@ export async function ensureTrialEnrollment(studentId: string, batchId: string) 
       status: "PENDING",
       portalUnlocked: true,
       isTrial: true,
+      trialExpiresAt: new Date(Date.now() + TRIAL_DURATION_MS),
     },
   });
 }
@@ -68,7 +75,9 @@ export async function startFreePreview(
   }
 
   const enrollment = await ensureTrialEnrollment(student.id, batchId);
-  if (!enrollment) return { ok: false, message: "This batch could not be found." };
+  if (!enrollment) {
+    return { ok: false, message: "This course doesn't offer a free trial. Please enrol to access it." };
+  }
 
   await createStudentSession({ studentId: student.id, name: student.name, email: student.email });
   return { ok: true };

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, CalendarPlus, Download, FileText, MessageSquare, Video } from "lucide-react";
+import { CalendarDays, CalendarPlus, Clock, Download, FileText, Lock, MessageSquare, Video } from "lucide-react";
 import { verifyStudentSession } from "@/lib/auth/dal";
 import { getEnrollmentForStudent } from "@/lib/data/portal";
 import { getBatchMessages, postStudentBatchMessage } from "@/lib/actions/batch-messages";
@@ -34,41 +34,130 @@ export default async function CourseWorkspacePage({
 
   if (enrollment.isTrial) {
     const { batch } = enrollment;
-    const previewSession = batch.sessions.find((s) => s.isFreePreview && s.recordingUrl);
+    const now = new Date();
     const offer = getActiveOffer(batch.offers);
     const { effectiveFee } = computeEffectiveFee(Number(batch.fee), offer);
+    const isExpired = Boolean(enrollment.trialExpiresAt && enrollment.trialExpiresAt < now);
+
+    if (isExpired) {
+      return (
+        <div className="mx-auto max-w-2xl space-y-6 text-center">
+          <Badge variant="secondary">Trial ended</Badge>
+          <h1 className="font-heading text-2xl font-bold">{batch.course.title}</h1>
+          <p className="text-sm text-muted-foreground">
+            Your 2-day free trial has ended. Enrol to unlock the full course.
+          </p>
+          <Button render={<Link href={`/checkout/${batch.id}`} />} nativeButton={false} size="lg">
+            Enrol now for {formatINR(effectiveFee)}
+          </Button>
+        </div>
+      );
+    }
+
+    const hoursLeft = enrollment.trialExpiresAt
+      ? Math.max(0, Math.ceil((enrollment.trialExpiresAt.getTime() - now.getTime()) / (60 * 60 * 1000)))
+      : null;
+    const previewSessions = batch.sessions.filter((s) => s.isFreePreview);
+    const lockedSessions = batch.sessions.filter((s) => !s.isFreePreview);
+    const previewMaterials = batch.materials.filter((m) => m.isFreePreview);
+    const lockedMaterials = batch.materials.filter((m) => !m.isFreePreview);
 
     return (
-      <div className="mx-auto max-w-3xl space-y-6">
+      <div className="mx-auto max-w-4xl space-y-8">
         <div>
-          <Badge className="bg-primary">Free preview</Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className="bg-primary">Free trial</Badge>
+            {hoursLeft !== null ? (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Clock className="h-3 w-3" /> {hoursLeft < 1 ? "Less than an hour left" : `${hoursLeft}h left`}
+              </Badge>
+            ) : null}
+          </div>
           <h1 className="mt-2 font-heading text-2xl font-bold">{batch.course.title}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            You have free access to the intro class. Enrol to unlock the full course.
+            You have free access to preview content for 2 days. Enrol any time to unlock everything.
           </p>
         </div>
 
-        {previewSession?.recordingUrl ? (
-          <VideoEmbed url={previewSession.recordingUrl} title={previewSession.topic} />
-        ) : (
-          <Card>
-            <CardContent className="p-6 text-sm text-muted-foreground">
-              The free intro class isn&apos;t available right now — check back soon.
-            </CardContent>
-          </Card>
-        )}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
+          <div className="space-y-6">
+            <section>
+              <h2 className="font-heading text-lg font-semibold">Preview sessions</h2>
+              {previewSessions.length === 0 ? (
+                <p className="mt-3 text-sm text-muted-foreground">No preview sessions available yet.</p>
+              ) : (
+                <div className="mt-3 space-y-4">
+                  {previewSessions.map((s) =>
+                    s.recordingUrl ? (
+                      <div key={s.id}>
+                        <p className="mb-2 text-sm font-medium">{s.topic}</p>
+                        <VideoEmbed url={s.recordingUrl} title={s.topic} />
+                      </div>
+                    ) : (
+                      <Card key={s.id}>
+                        <CardContent className="p-4 text-sm text-muted-foreground">
+                          {s.topic} — recording coming soon.
+                        </CardContent>
+                      </Card>
+                    )
+                  )}
+                </div>
+              )}
 
-        <div className="flex flex-col items-start gap-3 rounded-2xl border border-primary/20 bg-primary/[0.04] p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="font-heading font-semibold">Ready for the full course?</p>
-            <p className="text-sm text-muted-foreground">
-              Enrol for {formatINR(effectiveFee)} to unlock every session, materials, attendance and your
-              certificate.
-            </p>
+              {lockedSessions.length > 0 ? (
+                <div className="mt-4 space-y-1.5">
+                  {lockedSessions.map((s) => (
+                    <div
+                      key={s.id}
+                      className="flex items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted-foreground"
+                    >
+                      <Lock className="h-3.5 w-3.5 shrink-0" /> {s.topic}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </section>
+
+            {previewMaterials.length > 0 || lockedMaterials.length > 0 ? (
+              <section>
+                <h2 className="font-heading text-lg font-semibold">Materials</h2>
+                <div className="mt-3 space-y-1.5">
+                  {previewMaterials.map((m) => (
+                    <a
+                      key={m.id}
+                      href={m.fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm hover:bg-accent"
+                    >
+                      <Download className="h-3.5 w-3.5 shrink-0" /> {m.title}
+                    </a>
+                  ))}
+                  {lockedMaterials.map((m) => (
+                    <div
+                      key={m.id}
+                      className="flex items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted-foreground"
+                    >
+                      <Lock className="h-3.5 w-3.5 shrink-0" /> {m.title}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </div>
-          <Button render={<Link href={`/checkout/${batch.id}`} />} nativeButton={false} size="lg">
-            Enrol now
-          </Button>
+
+          <aside>
+            <div className="rounded-2xl border border-primary/20 bg-primary/[0.04] p-5">
+              <p className="font-heading font-semibold">Ready for the full course?</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Enrol for {formatINR(effectiveFee)} to unlock every session, materials, attendance and your
+                certificate.
+              </p>
+              <Button render={<Link href={`/checkout/${batch.id}`} />} nativeButton={false} size="lg" className="mt-4 w-full">
+                Enrol now
+              </Button>
+            </div>
+          </aside>
         </div>
       </div>
     );

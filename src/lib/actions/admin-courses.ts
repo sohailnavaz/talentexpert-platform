@@ -25,6 +25,7 @@ const courseSchema = z.object({
   status: z.enum(["DRAFT", "PUBLISHED"]),
   featured: z.coerce.boolean().optional(),
   featuredOrder: z.coerce.number().int().min(0).optional(),
+  trialEnabled: z.coerce.boolean().optional(),
 });
 
 export type AdminFormState = { ok: boolean; message?: string };
@@ -67,6 +68,7 @@ export async function createCourse(
     status: formData.get("status") ?? "DRAFT",
     featured: formData.get("featured") === "on",
     featuredOrder: formData.get("featuredOrder") || undefined,
+    trialEnabled: formData.get("trialEnabled") === "on",
   });
 
   if (!parsed.success) {
@@ -98,6 +100,7 @@ export async function createCourse(
       status: data.status,
       featured: Boolean(data.featured),
       featuredOrder: data.featuredOrder ?? 0,
+      trialEnabled: Boolean(data.trialEnabled),
       thumbnailUrl,
     },
   });
@@ -131,6 +134,7 @@ export async function updateCourse(
     status: formData.get("status") ?? "DRAFT",
     featured: formData.get("featured") === "on",
     featuredOrder: formData.get("featuredOrder") || undefined,
+    trialEnabled: formData.get("trialEnabled") === "on",
   });
 
   if (!parsed.success) {
@@ -159,6 +163,7 @@ export async function updateCourse(
       status: data.status,
       featured: Boolean(data.featured),
       featuredOrder: data.featuredOrder ?? 0,
+      trialEnabled: Boolean(data.trialEnabled),
       thumbnailUrl,
     },
   });

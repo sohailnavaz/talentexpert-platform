@@ -201,6 +201,10 @@ export function CourseForm({
           />
           <p className="text-xs text-muted-foreground">Lower numbers show first among featured courses.</p>
         </div>
+        <label className="flex items-center gap-2 pt-6 text-sm">
+          <Checkbox name="trialEnabled" defaultChecked={course?.trialEnabled} />
+          Offer a 2-day free trial
+        </label>
       </div>
 
       <SubmitButton label={submitLabel} />

@@ -239,9 +239,16 @@ export async function deleteSession(sessionId: string, batchId: string) {
   revalidatePath(`/admin/batches/${batchId}/edit`);
 }
 
-export async function addMaterial(batchId: string, title: string, fileUrl: string) {
+export async function addMaterial(batchId: string, title: string, fileUrl: string, isFreePreview = false) {
   await verifyAdminSession();
-  await db.material.create({ data: { batchId, title, fileUrl } });
+  await db.material.create({ data: { batchId, title, fileUrl, isFreePreview } });
+  revalidatePath(`/admin/batches/${batchId}/edit`);
+  revalidatePath("/portal");
+}
+
+export async function toggleMaterialFreePreview(materialId: string, batchId: string, isFreePreview: boolean) {
+  await verifyAdminSession();
+  await db.material.update({ where: { id: materialId }, data: { isFreePreview } });
   revalidatePath(`/admin/batches/${batchId}/edit`);
   revalidatePath("/portal");
 }

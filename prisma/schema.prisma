@@ -146,6 +146,7 @@ model Course {
   status           CourseStatus   @default(DRAFT)
   featured         Boolean        @default(false)
   featuredOrder    Int            @default(0)
+  trialEnabled     Boolean        @default(false)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
@@ -288,6 +289,7 @@ model Enrollment {
   status         EnrollmentStatus @default(PENDING)
   portalUnlocked Boolean          @default(false)
   isTrial        Boolean          @default(false)
+  trialExpiresAt DateTime?
   hoursLogged    Decimal          @default(0) @db.Decimal(6, 1)
   completedAt    DateTime?
   createdAt      DateTime         @default(now())
@@ -412,12 +414,13 @@ model SessionParticipant {
 }
 
 model Material {
-  id        String   @id @default(cuid())
-  batchId   String
-  batch     Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  title     String
-  fileUrl   String
-  createdAt DateTime @default(now())
+  id            String   @id @default(cuid())
+  batchId       String
+  batch         Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  title         String
+  fileUrl       String
+  isFreePreview Boolean  @default(false)
+  createdAt     DateTime @default(now())
 
   @@index([batchId])
 }

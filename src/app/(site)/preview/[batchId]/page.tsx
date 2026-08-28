@@ -24,12 +24,13 @@ export default async function FreePreviewPage({
   const batch = await db.batch.findUnique({
     where: { id: batchId },
     include: {
-      course: { select: { title: true, slug: true } },
+      course: { select: { title: true, slug: true, trialEnabled: true } },
       offers: true,
       sessions: { where: { isFreePreview: true }, take: 1 },
     },
   });
   if (!batch) notFound();
+  if (!batch.course.trialEnabled) notFound();
 
   const previewSession = batch.sessions[0];
   if (!previewSession?.recordingUrl) notFound();
@@ -88,7 +89,10 @@ export default async function FreePreviewPage({
 
       <div className="flex items-start gap-2.5 rounded-xl bg-secondary/50 p-4 text-sm text-muted-foreground">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-        <p>The intro class is completely free. You only pay when you&apos;re ready to enrol in the full course.</p>
+        <p>
+          You get 2 days of free access to this course&apos;s preview content. You only pay when you&apos;re
+          ready to enrol in the full course.
+        </p>
       </div>
     </div>
   );
