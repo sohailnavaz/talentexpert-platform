@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getStudentSession, getTrainerSession } from "@/lib/auth/session";
+import type { Gender } from "@/generated/prisma";
 
 export type DirectMessageEvent = {
   id: string;
@@ -61,13 +62,17 @@ export async function getTrainerMessageableStudents(trainerId: string) {
     include: { student: true },
   });
 
-  const seen = new Map<string, { id: string; name: string; email: string; avatarUrl: string | null }>();
+  const seen = new Map<
+    string,
+    { id: string; name: string; email: string; avatarUrl: string | null; gender: Gender | null }
+  >();
   for (const e of enrollments) {
     seen.set(e.student.id, {
       id: e.student.id,
       name: e.student.name,
       email: e.student.email,
       avatarUrl: e.student.avatarUrl,
+      gender: e.student.gender,
     });
   }
   return Array.from(seen.values());

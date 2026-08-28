@@ -29,7 +29,7 @@ export default async function TrainerMessagesPage() {
               <Card className="transition-colors hover:bg-accent">
                 <CardContent className="flex items-center gap-3 p-3">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={s.avatarUrl ?? generateAvatarDataUri(s.id)} alt={s.name} />
+                    <AvatarImage src={s.avatarUrl ?? generateAvatarDataUri(s.id, s.gender)} alt={s.name} />
                     <AvatarFallback className="bg-primary/15 text-sm font-semibold text-primary">
                       {s.name.charAt(0)}
                     </AvatarFallback>
