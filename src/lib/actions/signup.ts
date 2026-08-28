@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/auth/password";
 import { createStudentSession } from "@/lib/auth/session";
 import { createVerifyToken } from "@/lib/auth/verify-token";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, emailButton } from "@/lib/email";
 
 export async function sendVerificationEmail(student: { id: string; name: string; email: string }) {
   const token = await createVerifyToken(student.id);
@@ -14,7 +14,7 @@ export async function sendVerificationEmail(student: { id: string; name: string;
   await sendEmail({
     to: student.email,
     subject: "Verify your Talent Expert email",
-    html: `<p>Hi ${student.name},</p><p>Click the link below to verify your email address. This link expires in 24 hours.</p><p><a href="${verifyUrl}">${verifyUrl}</a></p>`,
+    html: `<p>Hi ${student.name},</p><p>Thanks for signing up for Talent Expert. Verify your email address to activate your account.</p><p style="text-align:center;margin:28px 0;">${emailButton(verifyUrl, "Verify email")}</p><p style="color:#71717a;font-size:13px;">This link expires in 24 hours.</p>`,
   });
 }
 

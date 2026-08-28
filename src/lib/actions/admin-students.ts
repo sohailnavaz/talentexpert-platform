@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { hashPassword, generateTempPassword } from "@/lib/auth/password";
 import { verifyAdminSession, requireRole } from "@/lib/auth/dal";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, emailCode } from "@/lib/email";
 import { generateEnrollmentCode } from "@/lib/enrollment-code";
 import { logActivity } from "@/lib/audit";
 
@@ -31,7 +31,7 @@ export async function resetStudentPassword(studentId: string) {
   await sendEmail({
     to: student.email,
     subject: "Your Talent Expert password has been reset",
-    html: `<p>Hi ${student.name},</p><p>Your temporary password is: <strong>${tempPassword}</strong></p><p>Please sign in and set a new password.</p>`,
+    html: `<p>Hi ${student.name},</p><p>Your Talent Expert password has been reset. Use the temporary password below to sign in, then set a new one.</p>${emailCode(tempPassword)}<p style="color:#71717a;font-size:13px;">You'll be asked to choose a new password on first login.</p>`,
   });
   await logActivity(session.adminId, "student.reset_password", "Student", studentId);
 

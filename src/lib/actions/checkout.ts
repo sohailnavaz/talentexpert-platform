@@ -6,7 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { razorpay, RAZORPAY_CONFIGURED } from "@/lib/razorpay";
 import { hashPassword, generateTempPassword } from "@/lib/auth/password";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, emailButton } from "@/lib/email";
 import { generateEnrollmentCode } from "@/lib/enrollment-code";
 import { getActiveOffer, computeEffectiveFee, computeCouponDiscount } from "@/lib/pricing";
 import { findOrCreateStudent } from "@/lib/student-provisioning";
@@ -60,13 +60,13 @@ async function issuePortalAccessEmail(enrollmentId: string) {
     await sendEmail({
       to: enrollment.student.email,
       subject: "Welcome to Talent Expert — your enrolment is confirmed",
-      html: `<p>Hi ${enrollment.student.name},</p><p>You're enrolled in <strong>${courseTitle}</strong>. Your enrolment code is <strong>${enrollment.enrollmentCode}</strong>.</p><p>Sign in to your student portal at <a href="${portalUrl}">${portalUrl}</a> with:</p><p>Email: ${enrollment.student.email}<br/>Temporary password: <strong>${tempPassword}</strong></p><p>You'll be asked to set a new password on first login.</p>`,
+      html: `<p>Hi ${enrollment.student.name},</p><p>Welcome aboard — you're enrolled in <strong>${courseTitle}</strong>. Your enrolment code is <strong>${enrollment.enrollmentCode}</strong>.</p><p>Sign in to your student portal with the credentials below:</p><p style="margin:4px 0;">Email: <strong>${enrollment.student.email}</strong><br/>Temporary password: <strong>${tempPassword}</strong></p><p style="text-align:center;margin:28px 0;">${emailButton(portalUrl, "Sign in to your portal")}</p><p style="color:#71717a;font-size:13px;">You'll be asked to set a new password on first login.</p>`,
     });
   } else {
     await sendEmail({
       to: enrollment.student.email,
       subject: `New course unlocked: ${courseTitle}`,
-      html: `<p>Hi ${enrollment.student.name},</p><p>You're now enrolled in <strong>${courseTitle}</strong>. Your enrolment code is <strong>${enrollment.enrollmentCode}</strong>.</p><p>It's live on your student portal: <a href="${portalUrl}">${portalUrl}</a></p>`,
+      html: `<p>Hi ${enrollment.student.name},</p><p>Good news — you're now enrolled in <strong>${courseTitle}</strong>. Your enrolment code is <strong>${enrollment.enrollmentCode}</strong>.</p><p>It's live on your student portal.</p><p style="text-align:center;margin:28px 0;">${emailButton(portalUrl, "Go to your portal")}</p>`,
     });
   }
 }

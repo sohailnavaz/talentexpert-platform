@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, emailButton } from "@/lib/email";
 import { verifyAdminSession } from "@/lib/auth/dal";
 
 async function notifySessionStudents(sessionId: string) {
@@ -26,7 +26,7 @@ async function notifySessionStudents(sessionId: string) {
     await sendEmail({
       to: e.student.email,
       subject: `Reminder: ${session.topic} starts soon`,
-      html: `<p>Hi ${e.student.name},</p><p>Your class <strong>${session.topic}</strong> for <strong>${session.batch.course.title}</strong> is coming up on ${session.date.toDateString()} at ${session.time}.</p><p><a href="${session.joinUrl}">Join the class</a></p>`,
+      html: `<p>Hi ${e.student.name},</p><p>Your class <strong>${session.topic}</strong> for <strong>${session.batch.course.title}</strong> is coming up on ${session.date.toDateString()} at ${session.time}.</p><p style="text-align:center;margin:28px 0;">${emailButton(session.joinUrl, "Join the class")}</p>`,
     });
   }
 

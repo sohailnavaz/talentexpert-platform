@@ -11,7 +11,7 @@ import { hashPassword, generateTempPassword } from "@/lib/auth/password";
 import { generateOtp } from "@/lib/auth/otp";
 
 const OTP_TTL_MS = 15 * 60 * 1000;
-import { sendEmail } from "@/lib/email";
+import { sendEmail, emailButton, emailCode } from "@/lib/email";
 import { logActivity } from "@/lib/audit";
 import type { AdminFormState } from "@/lib/actions/admin-courses";
 
@@ -96,7 +96,7 @@ export async function createTrainer(
     await sendEmail({
       to: d.email,
       subject: "Verify your email for the Talent Expert trainer portal",
-      html: `<p>Hi ${d.name},</p><p>You've been given access to the trainer portal. Verify your email with the code below, then set your own password.</p><p style="font-size:28px;font-weight:700;letter-spacing:0.2em;">${otp}</p><p>This code expires in 15 minutes.</p><p>Verify at <a href="${verifyUrl}">${verifyUrl}</a> using ${d.email}.</p>`,
+      html: `<p>Hi ${d.name},</p><p>You've been given access to the Talent Expert trainer portal. Use the verification code below to confirm your email, then set your own password.</p>${emailCode(otp)}<p style="color:#71717a;font-size:13px;">This code expires in 15 minutes.</p><p style="text-align:center;margin:28px 0;">${emailButton(verifyUrl, "Verify email")}</p><p style="color:#71717a;font-size:13px;">Sign in with ${d.email}.</p>`,
     });
   }
   await logActivity(session.adminId, "trainer.create", "Trainer", trainer.id, { name: trainer.name });
@@ -174,7 +174,7 @@ export async function updateTrainer(
     await sendEmail({
       to: d.email,
       subject: "Verify your email for the Talent Expert trainer portal",
-      html: `<p>Hi ${d.name},</p><p>You've been given access to the trainer portal. Verify your email with the code below, then set your own password.</p><p style="font-size:28px;font-weight:700;letter-spacing:0.2em;">${otp}</p><p>This code expires in 15 minutes.</p><p>Verify at <a href="${verifyUrl}">${verifyUrl}</a> using ${d.email}.</p>`,
+      html: `<p>Hi ${d.name},</p><p>You've been given access to the Talent Expert trainer portal. Use the verification code below to confirm your email, then set your own password.</p>${emailCode(otp)}<p style="color:#71717a;font-size:13px;">This code expires in 15 minutes.</p><p style="text-align:center;margin:28px 0;">${emailButton(verifyUrl, "Verify email")}</p><p style="color:#71717a;font-size:13px;">Sign in with ${d.email}.</p>`,
     });
     await logActivity(session.adminId, "trainer.grant_portal_access", "Trainer", trainerId, { email: d.email });
   } else if (passwordHash === null && !grantingAccess) {
@@ -201,7 +201,7 @@ export async function resetTrainerPassword(trainerId: string): Promise<{ tempPas
   await sendEmail({
     to: trainer.email,
     subject: "Your Talent Expert trainer portal password has been reset",
-    html: `<p>Hi ${trainer.name},</p><p>Your temporary password is: <strong>${tempPassword}</strong></p><p>Sign in and set a new password.</p>`,
+    html: `<p>Hi ${trainer.name},</p><p>Your trainer portal password has been reset. Use the temporary password below to sign in, then set a new one.</p>${emailCode(tempPassword)}<p style="color:#71717a;font-size:13px;">You'll be asked to choose a new password on first login.</p>`,
   });
   await logActivity(session.adminId, "trainer.reset_password", "Trainer", trainerId);
 

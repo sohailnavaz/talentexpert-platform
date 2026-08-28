@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { createResetToken, verifyResetToken } from "@/lib/auth/reset-token";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, emailButton } from "@/lib/email";
 import {
   createAdminSession,
   createStudentSession,
@@ -180,7 +180,7 @@ export async function requestPasswordReset(
     await sendEmail({
       to: student.email,
       subject: "Reset your Talent Expert password",
-      html: `<p>Hi ${student.name},</p><p>Click the link below to reset your password. This link expires in 30 minutes.</p><p><a href="${resetUrl}">${resetUrl}</a></p>`,
+      html: `<p>Hi ${student.name},</p><p>We received a request to reset your Talent Expert password.</p><p style="text-align:center;margin:28px 0;">${emailButton(resetUrl, "Reset password")}</p><p style="color:#71717a;font-size:13px;">This link expires in 30 minutes. If you didn't request this, you can safely ignore this email.</p>`,
     });
   }
 
