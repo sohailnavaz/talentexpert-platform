@@ -1,6 +1,8 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { db } from "@/lib/db";
 
 const secretKey = process.env.SESSION_SECRET;
 if (!secretKey) {
@@ -8,11 +10,18 @@ if (!secretKey) {
 }
 const encodedKey = new TextEncoder().encode(secretKey);
 
+// Caps how many devices a student can be signed in on at once — logging in
+// on a third device silently signs out the oldest. A missing sessionId (a
+// token issued before this existed) is grandfathered through unchecked until
+// it expires or the student logs in again.
+const MAX_STUDENT_SESSIONS = 2;
+
 export type StudentSessionPayload = {
   kind: "student";
   studentId: string;
   name: string;
   email: string;
+  sessionId?: string;
 };
 
 export type AdminSessionPayload = {
@@ -66,9 +75,17 @@ async function setSessionCookie(name: string, value: string) {
   });
 }
 
-export async function createStudentSession(payload: Omit<StudentSessionPayload, "kind">) {
-  const token = await encrypt({ kind: "student", ...payload });
+export async function createStudentSession(payload: Omit<StudentSessionPayload, "kind" | "sessionId">) {
+  const sessionId = randomUUID();
+  const token = await encrypt({ kind: "student", ...payload, sessionId });
   await setSessionCookie(STUDENT_COOKIE, token);
+
+  const student = await db.student.findUnique({
+    where: { id: payload.studentId },
+    select: { activeSessionIds: true },
+  });
+  const activeSessionIds = [...(student?.activeSessionIds ?? []), sessionId].slice(-MAX_STUDENT_SESSIONS);
+  await db.student.update({ where: { id: payload.studentId }, data: { activeSessionIds } });
 }
 
 export async function createAdminSession(payload: Omit<AdminSessionPayload, "kind">) {
@@ -83,7 +100,16 @@ export async function createTrainerSession(payload: Omit<TrainerSessionPayload, 
 
 export async function getStudentSession(): Promise<StudentSessionPayload | null> {
   const cookieStore = await cookies();
-  return decrypt<StudentSessionPayload>(cookieStore.get(STUDENT_COOKIE)?.value);
+  const payload = await decrypt<StudentSessionPayload>(cookieStore.get(STUDENT_COOKIE)?.value);
+  if (!payload || !payload.sessionId) return payload;
+
+  const student = await db.student.findUnique({
+    where: { id: payload.studentId },
+    select: { activeSessionIds: true },
+  });
+  if (!student || !student.activeSessionIds.includes(payload.sessionId)) return null;
+
+  return payload;
 }
 
 export async function getAdminSession(): Promise<AdminSessionPayload | null> {
@@ -98,7 +124,21 @@ export async function getTrainerSession(): Promise<TrainerSessionPayload | null>
 
 export async function destroyStudentSession() {
   const cookieStore = await cookies();
+  const payload = await decrypt<StudentSessionPayload>(cookieStore.get(STUDENT_COOKIE)?.value);
   cookieStore.delete(STUDENT_COOKIE);
+
+  if (payload?.sessionId) {
+    const student = await db.student.findUnique({
+      where: { id: payload.studentId },
+      select: { activeSessionIds: true },
+    });
+    if (student) {
+      await db.student.update({
+        where: { id: payload.studentId },
+        data: { activeSessionIds: student.activeSessionIds.filter((id) => id !== payload.sessionId) },
+      });
+    }
+  }
 }
 
 export async function destroyAdminSession() {

@@ -59,6 +59,7 @@ model Student {
   active             Boolean  @default(true)
   otpHash            String?
   otpExpiresAt       DateTime?
+  activeSessionIds   String[] @default([])
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
