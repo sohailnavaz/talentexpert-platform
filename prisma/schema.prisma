@@ -57,6 +57,8 @@ model Student {
   studentNumber      Int      @unique @default(autoincrement())
   emailVerified      Boolean  @default(false)
   active             Boolean  @default(true)
+  otpHash            String?
+  otpExpiresAt       DateTime?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 

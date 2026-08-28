@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { createResetToken, verifyResetToken } from "@/lib/auth/reset-token";
-import { sendEmail, emailButton } from "@/lib/email";
+import { generateOtp } from "@/lib/auth/otp";
+import { sendEmail, emailButton, emailCode } from "@/lib/email";
 import {
   createAdminSession,
   createStudentSession,
@@ -68,6 +69,84 @@ export async function loginStudent(
 export async function logoutStudent() {
   await destroyStudentSession();
   redirect("/login");
+}
+
+const requestOtpSchema = z.object({ email: z.email("Enter a valid email") });
+
+export async function requestStudentLoginOtp(
+  _prev: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  const parsed = requestOtpSchema.safeParse({ email: formData.get("email") });
+  const genericMessage = "If that email is registered, we've sent a 6-digit code.";
+  if (!parsed.success) {
+    return { ok: false, message: "Enter a valid email address." };
+  }
+
+  const rateLimitKey = `student-otp-request:${parsed.data.email.toLowerCase()}`;
+  if (isRateLimited(rateLimitKey)) {
+    return { ok: false, message: RATE_LIMIT_MESSAGE };
+  }
+  recordFailedAttempt(rateLimitKey);
+
+  const student = await db.student.findUnique({ where: { email: parsed.data.email } });
+  if (student && student.active) {
+    const otp = generateOtp();
+    const otpHash = await hashPassword(otp);
+    await db.student.update({
+      where: { id: student.id },
+      data: { otpHash, otpExpiresAt: new Date(Date.now() + 15 * 60 * 1000) },
+    });
+    await sendEmail({
+      to: student.email,
+      subject: "Your Talent Expert sign-in code",
+      html: `<p>Hi ${student.name},</p><p>Use the code below to sign in to your student portal.</p>${emailCode(otp)}<p style="color:#71717a;font-size:13px;">This code expires in 15 minutes. If you didn't request this, you can safely ignore this email.</p>`,
+    });
+  }
+
+  return { ok: true, message: genericMessage };
+}
+
+const verifyOtpSchema = z.object({
+  email: z.email("Enter a valid email"),
+  otp: z.string().trim().length(6, "Enter the 6-digit code sent to your email"),
+});
+
+export async function verifyStudentLoginOtp(
+  _prev: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  const parsed = verifyOtpSchema.safeParse({
+    email: formData.get("email"),
+    otp: formData.get("otp"),
+  });
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Please check your details." };
+  }
+
+  const rateLimitKey = `student-otp-verify:${parsed.data.email.toLowerCase()}`;
+  if (isRateLimited(rateLimitKey)) {
+    return { ok: false, message: RATE_LIMIT_MESSAGE };
+  }
+
+  const student = await db.student.findUnique({ where: { email: parsed.data.email } });
+  const valid =
+    student?.active && student.otpHash && student.otpExpiresAt && student.otpExpiresAt > new Date()
+      ? await verifyPassword(parsed.data.otp, student.otpHash)
+      : false;
+
+  if (!student || !valid) {
+    recordFailedAttempt(rateLimitKey);
+    return { ok: false, message: "That code is invalid or has expired." };
+  }
+
+  clearAttempts(rateLimitKey);
+  await db.student.update({
+    where: { id: student.id },
+    data: { otpHash: null, otpExpiresAt: null, emailVerified: true },
+  });
+  await createStudentSession({ studentId: student.id, name: student.name, email: student.email });
+  redirect("/portal");
 }
 
 export async function loginAdmin(

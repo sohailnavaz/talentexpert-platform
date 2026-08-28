@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CredentialsForm } from "@/components/auth/credentials-form";
+import { EmailOtpLoginForm } from "@/components/auth/email-otp-login-form";
 import { GoogleSignInButton } from "@/components/auth/google-signin-button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { loginStudent } from "@/lib/actions/auth";
 
 export const metadata: Metadata = { title: "Student Login" };
@@ -17,7 +19,27 @@ export default function StudentLoginPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <CredentialsForm action={loginStudent} />
+        <Tabs defaultValue="password">
+          <TabsList className="w-full bg-white/5">
+            <TabsTrigger value="password" className="flex-1 text-white/70 data-active:text-white">
+              Password
+            </TabsTrigger>
+            <TabsTrigger value="code" className="flex-1 text-white/70 data-active:text-white">
+              Email code
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="password" className="mt-4">
+            <CredentialsForm action={loginStudent} />
+            <div className="mt-2 text-right text-xs text-white/50">
+              <Link href="/forgot-password" className="hover:text-white">
+                Forgot password?
+              </Link>
+            </div>
+          </TabsContent>
+          <TabsContent value="code" className="mt-4">
+            <EmailOtpLoginForm />
+          </TabsContent>
+        </Tabs>
         <div className="flex items-center gap-3 text-xs text-white/40">
           <div className="h-px flex-1 bg-white/10" />
           or
@@ -25,9 +47,6 @@ export default function StudentLoginPage() {
         </div>
         <GoogleSignInButton className="border-white/15 bg-white/5 text-white hover:bg-white/10" />
         <div className="flex items-center justify-between text-xs text-white/50">
-          <Link href="/forgot-password" className="hover:text-white">
-            Forgot password?
-          </Link>
           <Link href="/courses" className="hover:text-white">
             Browse courses
           </Link>
