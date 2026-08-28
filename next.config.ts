@@ -16,7 +16,9 @@ const cspDirectives = [
   "img-src 'self' https: data: blob:",
   "media-src 'self' https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.google.com https://*.clarity.ms https://api.razorpay.com https://lumberjack.razorpay.com https://connect.facebook.net",
+  // *.r2.cloudflarestorage.com: browsers upload video recordings directly
+  // to R2 via a presigned URL, bypassing the server's request-size limit.
+  "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.google.com https://*.clarity.ms https://api.razorpay.com https://lumberjack.razorpay.com https://connect.facebook.net https://*.r2.cloudflarestorage.com",
   "frame-src https://www.youtube.com https://player.vimeo.com https://api.razorpay.com https://checkout.razorpay.com",
   "object-src 'none'",
   "base-uri 'self'",

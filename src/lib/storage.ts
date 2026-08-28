@@ -3,6 +3,7 @@ import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 
@@ -51,4 +52,28 @@ export async function saveUploadedFile(file: File): Promise<string> {
   await mkdir(UPLOAD_DIR, { recursive: true });
   await writeFile(path.join(UPLOAD_DIR, filename), buffer);
   return `/uploads/${filename}`;
+}
+
+/**
+ * Returns a short-lived URL the browser can PUT a large file (e.g. a video
+ * recording) to directly, bypassing the server entirely — necessary since
+ * proxying a multi-hundred-MB file through a Server Action would hit
+ * Vercel's request body size limit.
+ */
+export async function createPresignedUploadUrl(
+  filename: string,
+  contentType: string
+): Promise<{ uploadUrl: string; publicUrl: string }> {
+  const s3 = getS3Client();
+  const bucket = process.env.S3_BUCKET;
+  const publicBaseUrl = process.env.S3_PUBLIC_BASE_URL;
+  if (!s3 || !bucket || !publicBaseUrl) {
+    throw new Error("File storage isn't configured for direct uploads.");
+  }
+
+  const ext = safeExtension(filename);
+  const key = `${randomUUID()}${ext}`;
+  const command = new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType });
+  const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 15 * 60 });
+  return { uploadUrl, publicUrl: `${publicBaseUrl.replace(/\/$/, "")}/${key}` };
 }
