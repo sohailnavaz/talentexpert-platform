@@ -16,9 +16,9 @@ export function BlogPreview({ posts }: { posts: BlogPost[] }) {
           eyebrow="From the blog"
           title="Career tips, interview prep & industry notes"
         />
-        <RevealStagger className="mt-8 sm:mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <RevealStagger className="-mx-4 mt-8 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:mt-10 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
           {posts.map((post) => (
-            <RevealItem key={post.id}>
+            <RevealItem key={post.id} className="w-[78%] shrink-0 snap-center sm:w-auto sm:shrink">
               <Link
                 href={`/blog/${post.slug}`}
                 className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md"

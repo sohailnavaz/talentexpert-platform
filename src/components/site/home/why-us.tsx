@@ -2,6 +2,7 @@ import { Award, Briefcase, CalendarClock, MessagesSquare, ShieldCheck, Users2 } 
 import { SectionHeading } from "@/components/site/section-heading";
 import { BentoCard, BentoGrid } from "@/components/ui-fx/bento-grid";
 import { Reveal } from "@/components/ui-fx/reveal";
+import { cn } from "@/lib/utils";
 
 const items = [
   {
@@ -52,14 +53,14 @@ export function WhyUs() {
           description="Everything here exists to get you from enquiry to a job-ready skill."
         />
         <Reveal className="mt-8 sm:mt-12">
-          <BentoGrid className="lg:grid-cols-4">
+          <BentoGrid className="grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             {items.map((item) => (
               <BentoCard
                 key={item.title}
                 title={item.title}
                 description={item.description}
                 icon={<item.icon className="h-5.5 w-5.5" />}
-                className={item.span}
+                className={cn("p-4 sm:p-6", item.span)}
               />
             ))}
           </BentoGrid>

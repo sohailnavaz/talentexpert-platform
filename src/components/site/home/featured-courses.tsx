@@ -33,9 +33,9 @@ export function FeaturedCourses({
         </Button>
       </div>
 
-      <RevealStagger className="mt-8 sm:mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <RevealStagger className="-mx-4 mt-8 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:mt-10 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
         {courses.map((course) => (
-          <RevealItem key={course.id}>
+          <RevealItem key={course.id} className="w-[78%] shrink-0 snap-center sm:w-auto sm:shrink">
             <CourseCard course={course} />
           </RevealItem>
         ))}

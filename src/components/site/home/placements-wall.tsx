@@ -15,12 +15,12 @@ export function PlacementsWall({ placements }: { placements: Placement[] }) {
           title="Where our students landed"
           description="Real hiring outcomes, not projected numbers."
         />
-        <RevealStagger className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+        <RevealStagger className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border lg:grid-cols-4">
           {placements.map((p) => (
             <RevealItem key={p.id}>
-              <div className="group flex h-full flex-col justify-between bg-card p-5 transition-colors hover:bg-secondary/40">
+              <div className="group flex h-full flex-col justify-between bg-card p-3 transition-colors hover:bg-secondary/40 sm:p-5">
                 <div className="flex items-start justify-between">
-                  <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-muted">
+                  <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-muted sm:h-11 sm:w-11">
                     {p.photoUrl ? (
                       <Image src={p.photoUrl} alt={p.studentName} fill className="object-cover" />
                     ) : (
@@ -31,11 +31,11 @@ export function PlacementsWall({ placements }: { placements: Placement[] }) {
                   </div>
                   <ArrowUpRight className="h-4 w-4 text-muted-foreground/40 transition-colors group-hover:text-primary" />
                 </div>
-                <div className="mt-4">
-                  <p className="font-heading text-sm font-semibold">{p.studentName}</p>
-                  <p className="mt-0.5 text-sm text-muted-foreground">{p.role}</p>
-                  <p className="mt-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-primary">
-                    <Building2 className="h-3.5 w-3.5" /> {p.company}
+                <div className="mt-3 sm:mt-4">
+                  <p className="truncate font-heading text-sm font-semibold">{p.studentName}</p>
+                  <p className="mt-0.5 truncate text-sm text-muted-foreground">{p.role}</p>
+                  <p className="mt-2 flex items-center gap-1.5 truncate text-xs font-medium uppercase tracking-wide text-primary">
+                    <Building2 className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{p.company}</span>
                   </p>
                 </div>
               </div>

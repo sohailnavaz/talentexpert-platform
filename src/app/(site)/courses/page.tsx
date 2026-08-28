@@ -64,7 +64,7 @@ export default async function CoursesPage({
           </div>
         ) : (
           <>
-            <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
               {pagedCourses.map((course) => (
                 <CourseCard key={course.id} course={course} />
               ))}
