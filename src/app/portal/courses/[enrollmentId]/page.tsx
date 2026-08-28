@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/accordion";
 import { BatchMessageThread } from "@/components/portal/batch-message-thread";
 import { VideoEmbed } from "@/components/site/video-embed";
-import { resolveVideoPlaybackUrl } from "@/lib/storage";
+import { resolveStorageUrl, resolveStorageUrlOrNull, VIDEO_URL_EXPIRY_SECONDS } from "@/lib/storage";
 import { formatDate, formatINR, modeLabels } from "@/lib/format";
 import { googleCalendarUrl } from "@/lib/calendar";
 import { getActiveOffer, computeEffectiveFee } from "@/lib/pricing";
@@ -63,11 +63,15 @@ export default async function CourseWorkspacePage({
         .filter((s) => s.isFreePreview)
         .map(async (s) => ({
           ...s,
-          playbackUrl: s.recordingUrl ? await resolveVideoPlaybackUrl(s.recordingUrl) : null,
+          playbackUrl: s.recordingUrl ? await resolveStorageUrl(s.recordingUrl, VIDEO_URL_EXPIRY_SECONDS) : null,
         }))
     );
     const lockedSessions = batch.sessions.filter((s) => !s.isFreePreview);
-    const previewMaterials = batch.materials.filter((m) => m.isFreePreview);
+    const previewMaterials = await Promise.all(
+      batch.materials
+        .filter((m) => m.isFreePreview)
+        .map(async (m) => ({ ...m, fileUrl: await resolveStorageUrl(m.fileUrl) }))
+    );
     const lockedMaterials = batch.materials.filter((m) => !m.isFreePreview);
 
     return (
@@ -182,6 +186,9 @@ export default async function CourseWorkspacePage({
   const attendanceByCession = new Map(enrollment.attendances.map((a) => [a.classSessionId, a.present]));
   const attendedCount = pastSessions.filter((s) => attendanceByCession.get(s.id)).length;
   const messages = await getBatchMessages(batch.id);
+  const materials = await Promise.all(
+    batch.materials.map(async (m) => ({ ...m, fileUrl: await resolveStorageUrl(m.fileUrl) }))
+  );
   const postMessage = postStudentBatchMessage.bind(null, batch.id, `/portal/courses/${enrollment.id}`);
 
   return (
@@ -339,11 +346,11 @@ export default async function CourseWorkspacePage({
             <h2 className="flex items-center gap-2 font-heading text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               <FileText className="h-4 w-4" /> Study materials
             </h2>
-            {batch.materials.length === 0 ? (
+            {materials.length === 0 ? (
               <p className="mt-3 text-sm text-muted-foreground">No materials uploaded yet.</p>
             ) : (
               <div className="mt-3 flex flex-col gap-2">
-                {batch.materials.map((m) => (
+                {materials.map((m) => (
                   <a
                     key={m.id}
                     href={m.fileUrl}

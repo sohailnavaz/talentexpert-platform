@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getStudentSession, getTrainerSession, getAdminSession } from "@/lib/auth/session";
-import { saveUploadedFile } from "@/lib/storage";
+import { saveUploadedFile, resolveStorageUrlOrNull } from "@/lib/storage";
 
 export type BatchMessageEvent = {
   id: string;
@@ -63,15 +63,17 @@ export async function getBatchMessages(batchId: string): Promise<BatchMessageEve
     },
   });
 
-  return messages.map((m) => ({
-    id: m.id,
-    authorRole: m.authorRole,
-    authorName: m.student?.name ?? m.trainer?.name ?? m.admin?.name ?? ROLE_LABEL[m.authorRole],
-    body: m.body,
-    attachmentUrl: m.attachmentUrl,
-    attachmentName: m.attachmentName,
-    createdAt: m.createdAt.toISOString(),
-  }));
+  return Promise.all(
+    messages.map(async (m) => ({
+      id: m.id,
+      authorRole: m.authorRole,
+      authorName: m.student?.name ?? m.trainer?.name ?? m.admin?.name ?? ROLE_LABEL[m.authorRole],
+      body: m.body,
+      attachmentUrl: await resolveStorageUrlOrNull(m.attachmentUrl),
+      attachmentName: m.attachmentName,
+      createdAt: m.createdAt.toISOString(),
+    }))
+  );
 }
 
 export async function postStudentBatchMessage(

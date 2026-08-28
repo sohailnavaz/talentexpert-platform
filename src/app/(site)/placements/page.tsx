@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Briefcase } from "lucide-react";
 import { getActivePlacements, getActiveTestimonials } from "@/lib/data/content";
 import { db } from "@/lib/db";
+import { resolveStorageUrlOrNull } from "@/lib/storage";
 import { PageHero } from "@/components/site/page-hero";
 import { SectionHeading } from "@/components/site/section-heading";
 import { NumberTicker } from "@/components/ui-fx/number-ticker";
@@ -17,12 +18,15 @@ export const metadata: Metadata = {
 };
 
 export default async function PlacementsPage() {
-  const [placements, testimonials, placedCount, hiringPartners] = await Promise.all([
+  const [placementsRaw, testimonials, placedCount, hiringPartners] = await Promise.all([
     getActivePlacements(24),
     getActiveTestimonials(6),
     db.placement.count({ where: { active: true } }),
     db.placement.groupBy({ by: ["company"], where: { active: true } }).then((r) => r.length),
   ]);
+  const placements = await Promise.all(
+    placementsRaw.map(async (p) => ({ ...p, photoUrl: await resolveStorageUrlOrNull(p.photoUrl) }))
+  );
 
   return (
     <>

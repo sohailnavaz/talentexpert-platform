@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Newspaper } from "lucide-react";
 import { getPostBySlug, getPublishedPosts } from "@/lib/data/content";
 import { formatDate } from "@/lib/format";
+import { resolveStorageUrlOrNull, isSignableStorageUrl } from "@/lib/storage";
 import { BlogPreview } from "@/components/site/home/blog-preview";
 
 export async function generateMetadata({
@@ -27,13 +28,14 @@ export default async function BlogPostPage({
   if (!post || post.status !== "PUBLISHED") notFound();
 
   const otherPosts = (await getPublishedPosts({ take: 4 })).filter((p) => p.id !== post.id).slice(0, 3);
+  const coverImageUrl = await resolveStorageUrlOrNull(post.coverImageUrl);
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: post.title,
     description: post.excerpt,
-    ...(post.coverImageUrl ? { image: post.coverImageUrl } : {}),
+    ...(post.coverImageUrl && !isSignableStorageUrl(post.coverImageUrl) ? { image: post.coverImageUrl } : {}),
     datePublished: post.publishedAt?.toISOString(),
     dateModified: post.updatedAt.toISOString(),
     author: { "@type": "Organization", name: post.authorName },
@@ -52,8 +54,8 @@ export default async function BlogPostPage({
         <p className="mt-4 text-lg text-muted-foreground">{post.excerpt}</p>
 
         <div className="relative mt-8 aspect-[16/9] w-full overflow-hidden rounded-2xl bg-muted">
-          {post.coverImageUrl ? (
-            <Image src={post.coverImageUrl} alt={post.title} fill className="object-cover" />
+          {coverImageUrl ? (
+            <Image src={coverImageUrl} alt={post.title} fill className="object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/15 to-brand-2/10">
               <Newspaper className="h-10 w-10 text-primary/50" />

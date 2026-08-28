@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getStudentSession, getTrainerSession } from "@/lib/auth/session";
+import { resolveStorageUrlOrNull } from "@/lib/storage";
 import type { Gender } from "@/generated/prisma";
 
 export type DirectMessageEvent = {
@@ -53,7 +54,9 @@ export async function getStudentMessageableTrainers(studentId: string) {
       });
     }
   }
-  return Array.from(seen.values());
+  return Promise.all(
+    Array.from(seen.values()).map(async (t) => ({ ...t, photoUrl: await resolveStorageUrlOrNull(t.photoUrl) }))
+  );
 }
 
 export async function getTrainerMessageableStudents(trainerId: string) {
@@ -75,7 +78,9 @@ export async function getTrainerMessageableStudents(trainerId: string) {
       gender: e.student.gender,
     });
   }
-  return Array.from(seen.values());
+  return Promise.all(
+    Array.from(seen.values()).map(async (s) => ({ ...s, avatarUrl: await resolveStorageUrlOrNull(s.avatarUrl) }))
+  );
 }
 
 export async function postStudentDirectMessage(trainerId: string, revalidateTo: string, formData: FormData) {

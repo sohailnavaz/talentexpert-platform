@@ -32,6 +32,7 @@ import {
 import { AttendanceForm } from "@/components/trainer/attendance-form";
 import { BatchMessageThread } from "@/components/portal/batch-message-thread";
 import { formatDate, modeLabels } from "@/lib/format";
+import { resolveStorageUrl } from "@/lib/storage";
 
 export const metadata: Metadata = { title: "Batch" };
 
@@ -45,10 +46,11 @@ export default async function TrainerBatchPage({
   const batch = await getBatchForTrainer(session.trainerId, batchId);
   if (!batch) notFound();
 
-  const [attendance, messages, participantsBySession] = await Promise.all([
+  const [attendance, messages, participantsBySession, materials] = await Promise.all([
     getAttendanceForBatch(batch.id),
     getBatchMessages(batch.id),
     Promise.all(batch.sessions.map((s) => getSessionParticipants(s.id))),
+    Promise.all(batch.materials.map(async (m) => ({ ...m, fileUrl: await resolveStorageUrl(m.fileUrl) }))),
   ]);
   const attendanceMap = new Map(attendance.map((a) => [`${a.classSessionId}_${a.enrollmentId}`, a.present]));
   const viewersMap = new Map(batch.sessions.map((s, i) => [s.id, participantsBySession[i]]));
@@ -145,11 +147,11 @@ export default async function TrainerBatchPage({
             <h2 className="flex items-center gap-2 font-heading text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               <FileText className="h-4 w-4" /> Study materials
             </h2>
-            {batch.materials.length === 0 ? (
+            {materials.length === 0 ? (
               <p className="mt-3 text-sm text-muted-foreground">No materials uploaded yet.</p>
             ) : (
               <div className="mt-3 flex flex-col gap-2">
-                {batch.materials.map((m) => (
+                {materials.map((m) => (
                   <a
                     key={m.id}
                     href={m.fileUrl}

@@ -4,6 +4,7 @@ import { verifyStudentSession } from "@/lib/auth/dal";
 import { evaluateAndAwardBadges, getStudentBadgeBoard, getLevelProgress } from "@/lib/gamification";
 import { formatMemberId } from "@/lib/format";
 import { generateAvatarDataUri } from "@/lib/avatar";
+import { resolveStorageUrlOrNull } from "@/lib/storage";
 import { AuroraBackground } from "@/components/ui-fx/aurora-background";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +21,7 @@ export const metadata: Metadata = { title: "My Profile" };
 export default async function ProfilePage() {
   const session = await verifyStudentSession();
   const student = await db.student.findUniqueOrThrow({ where: { id: session.studentId } });
+  const avatarUrl = await resolveStorageUrlOrNull(student.avatarUrl);
   const { stats } = await evaluateAndAwardBadges(session.studentId);
   const badges = await getStudentBadgeBoard(session.studentId, stats);
   const earnedCount = badges.filter((b) => b.earned).length;
@@ -34,7 +36,7 @@ export default async function ProfilePage() {
           <div className="relative shrink-0">
             <Avatar className="h-20 w-20 border-4 border-background shadow-lg">
               <AvatarImage
-                src={student.avatarUrl ?? generateAvatarDataUri(student.id, student.gender)}
+                src={avatarUrl ?? generateAvatarDataUri(student.id, student.gender)}
                 alt={student.name}
               />
               <AvatarFallback className="bg-primary/15 font-heading text-2xl font-bold text-primary">

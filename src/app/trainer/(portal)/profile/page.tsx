@@ -5,19 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrainerPhotoUploadButton } from "@/components/trainer/photo-upload-button";
 import { TrainerProfileForm } from "@/components/trainer/profile-form";
 import { TrainerPasswordForm } from "@/components/trainer/password-form";
+import { resolveStorageUrlOrNull } from "@/lib/storage";
 
 export const metadata: Metadata = { title: "My Profile", robots: { index: false, follow: false } };
 
 export default async function TrainerProfilePage() {
   const trainer = await getCurrentTrainer();
   if (!trainer) return null;
+  const photoUrl = await resolveStorageUrlOrNull(trainer.photoUrl);
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <div className="flex items-center gap-4 rounded-2xl border border-border bg-card p-6">
         <div className="relative shrink-0">
           <Avatar className="h-20 w-20 border-4 border-background shadow-lg">
-            {trainer.photoUrl ? <AvatarImage src={trainer.photoUrl} alt={trainer.name} /> : null}
+            {photoUrl ? <AvatarImage src={photoUrl} alt={trainer.name} /> : null}
             <AvatarFallback className="bg-primary/15 font-heading text-2xl font-bold text-primary">
               {trainer.name.charAt(0)}
             </AvatarFallback>

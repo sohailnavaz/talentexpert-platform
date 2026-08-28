@@ -5,6 +5,7 @@ import { getTrainerBySlug } from "@/lib/data/content";
 import { CourseCard } from "@/components/site/course-card";
 import { SectionHeading } from "@/components/site/section-heading";
 import { BrandWatermark } from "@/components/site/brand-watermark";
+import { resolveStorageUrlOrNull, isSignableStorageUrl } from "@/lib/storage";
 
 export async function generateMetadata({
   params,
@@ -25,13 +26,17 @@ export default async function TrainerDetailPage({
   const { slug } = await params;
   const trainer = await getTrainerBySlug(slug);
   if (!trainer || !trainer.active) notFound();
+  const photoUrl = await resolveStorageUrlOrNull(trainer.photoUrl);
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
     name: trainer.name,
     ...(trainer.bio ? { description: trainer.bio } : {}),
-    ...(trainer.photoUrl ? { image: trainer.photoUrl } : {}),
+    // Skip R2-hosted photos here: a short-lived signed URL would go dead
+    // long before a search crawler ever fetches it. Only include a stable,
+    // externally-hosted image.
+    ...(trainer.photoUrl && !isSignableStorageUrl(trainer.photoUrl) ? { image: trainer.photoUrl } : {}),
     jobTitle: "Trainer",
     knowsAbout: trainer.expertise,
     worksFor: { "@type": "EducationalOrganization", name: "Talent Expert" },
@@ -44,8 +49,8 @@ export default async function TrainerDetailPage({
         <BrandWatermark />
         <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-5 px-4 py-16 text-center sm:px-6 lg:px-8">
           <div className="relative h-28 w-28 overflow-hidden rounded-full border-4 border-white/10 bg-white/10">
-            {trainer.photoUrl ? (
-              <Image src={trainer.photoUrl} alt={trainer.name} fill className="object-cover" />
+            {photoUrl ? (
+              <Image src={photoUrl} alt={trainer.name} fill className="object-cover" />
             ) : (
               <div className="flex h-full w-full items-center justify-center font-heading text-3xl font-bold">
                 {trainer.name.charAt(0)}

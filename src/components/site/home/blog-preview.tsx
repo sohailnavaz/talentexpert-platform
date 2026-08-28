@@ -4,10 +4,15 @@ import { ArrowRight, Newspaper } from "lucide-react";
 import { SectionHeading } from "@/components/site/section-heading";
 import { RevealItem, RevealStagger } from "@/components/ui-fx/reveal";
 import { formatDate } from "@/lib/format";
+import { resolveStorageUrlOrNull } from "@/lib/storage";
 import type { BlogPost } from "@/generated/prisma";
 
-export function BlogPreview({ posts }: { posts: BlogPost[] }) {
+export async function BlogPreview({ posts }: { posts: BlogPost[] }) {
   if (posts.length === 0) return null;
+
+  const resolvedPosts = await Promise.all(
+    posts.map(async (post) => ({ ...post, coverImageUrl: await resolveStorageUrlOrNull(post.coverImageUrl) }))
+  );
 
   return (
     <section className="bg-secondary/40 py-14 sm:py-20">
@@ -17,7 +22,7 @@ export function BlogPreview({ posts }: { posts: BlogPost[] }) {
           title="Career tips, interview prep & industry notes"
         />
         <RevealStagger className="-mx-4 mt-8 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:mt-10 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
-          {posts.map((post) => (
+          {resolvedPosts.map((post) => (
             <RevealItem key={post.id} className="w-[78%] shrink-0 snap-center sm:w-auto sm:shrink">
               <Link
                 href={`/blog/${post.slug}`}

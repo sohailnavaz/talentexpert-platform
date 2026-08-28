@@ -5,6 +5,7 @@ import { Newspaper } from "lucide-react";
 import { getPublishedPosts } from "@/lib/data/content";
 import { PageHero } from "@/components/site/page-hero";
 import { formatDate } from "@/lib/format";
+import { resolveStorageUrlOrNull } from "@/lib/storage";
 import { RevealItem, RevealStagger } from "@/components/ui-fx/reveal";
 
 export const metadata: Metadata = {
@@ -25,7 +26,10 @@ export default async function BlogPage({
   searchParams: Promise<{ category?: string }>;
 }) {
   const { category } = await searchParams;
-  const posts = await getPublishedPosts({ category });
+  const postsRaw = await getPublishedPosts({ category });
+  const posts = await Promise.all(
+    postsRaw.map(async (post) => ({ ...post, coverImageUrl: await resolveStorageUrlOrNull(post.coverImageUrl) }))
+  );
 
   return (
     <>

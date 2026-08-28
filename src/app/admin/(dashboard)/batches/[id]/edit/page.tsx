@@ -6,6 +6,7 @@ import { OffersManager } from "@/components/admin/offers-manager";
 import { SessionsMaterialsManager } from "@/components/admin/sessions-materials-manager";
 import { BackLink } from "@/components/admin/back-link";
 import { updateBatch } from "@/lib/actions/admin-batches";
+import { resolveStorageUrl } from "@/lib/storage";
 
 export const metadata: Metadata = { title: "Manage Batch" };
 
@@ -31,6 +32,9 @@ export default async function EditBatchPage({
 
   if (!batch) notFound();
 
+  const materials = await Promise.all(
+    batch.materials.map(async (m) => ({ ...m, fileUrl: await resolveStorageUrl(m.fileUrl) }))
+  );
   const updateBatchWithId = updateBatch.bind(null, batch.id);
   const { course: _course, offers: _offers, sessions: _sessions, materials: _materials, ...batchScalars } = batch;
 
@@ -73,7 +77,7 @@ export default async function EditBatchPage({
           <SessionsMaterialsManager
             batchId={batch.id}
             sessions={batch.sessions.map((s) => ({ ...s, date: s.date.toISOString() }))}
-            materials={batch.materials}
+            materials={materials}
             dailyEnabled={Boolean(process.env.DAILY_API_KEY)}
           />
         </div>

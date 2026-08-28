@@ -22,6 +22,7 @@ import { getCurrentStudent } from "@/lib/auth/dal";
 import { logoutStudent } from "@/lib/actions/auth";
 import { formatMemberId } from "@/lib/format";
 import { generateAvatarDataUri } from "@/lib/avatar";
+import { resolveStorageUrlOrNull } from "@/lib/storage";
 import { VerifyEmailBanner } from "@/components/portal/verify-email-banner";
 import { AnnouncementPopup } from "@/components/site/announcement-popup";
 import { getPortalAnnouncements } from "@/lib/data/portal";
@@ -39,9 +40,10 @@ const NAV = [
 
 export default async function PortalLayout({ children }: { children: ReactNode }) {
   const student = await getCurrentStudent();
-  const popupAnnouncements = student
-    ? await getPortalAnnouncements(student.id, { popupOnly: true, take: 3 })
-    : [];
+  const [popupAnnouncements, avatarUrl] = await Promise.all([
+    student ? getPortalAnnouncements(student.id, { popupOnly: true, take: 3 }) : Promise.resolve([]),
+    student ? resolveStorageUrlOrNull(student.avatarUrl) : Promise.resolve(null),
+  ]);
 
   return (
     <SidebarProvider>
@@ -78,7 +80,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
                 <Avatar className="h-8 w-8">
                   {student ? (
                     <AvatarImage
-                      src={student.avatarUrl ?? generateAvatarDataUri(student.id, student.gender)}
+                      src={avatarUrl ?? generateAvatarDataUri(student.id, student.gender)}
                       alt={student.name}
                     />
                   ) : null}

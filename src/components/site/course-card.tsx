@@ -3,22 +3,25 @@ import Image from "next/image";
 import { ArrowUpRight, Clock, Layers } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatINR, modeLabels } from "@/lib/format";
+import { resolveStorageUrlOrNull } from "@/lib/storage";
 import type { Category, Course, Trainer } from "@/generated/prisma";
 
 type CourseCardProps = {
   course: Course & { category?: Category | null; trainer?: Trainer | null };
 };
 
-export function CourseCard({ course }: CourseCardProps) {
+export async function CourseCard({ course }: CourseCardProps) {
+  const thumbnailUrl = await resolveStorageUrlOrNull(course.thumbnailUrl);
+
   return (
     <Link
       href={`/courses/${course.slug}`}
       className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10"
     >
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted">
-        {course.thumbnailUrl ? (
+        {thumbnailUrl ? (
           <Image
-            src={course.thumbnailUrl}
+            src={thumbnailUrl}
             alt={course.title}
             fill
             sizes="(min-width: 1024px) 360px, (min-width: 640px) 45vw, 90vw"

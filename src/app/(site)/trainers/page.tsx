@@ -4,6 +4,7 @@ import Image from "next/image";
 import { getActiveTrainers } from "@/lib/data/content";
 import { PageHero } from "@/components/site/page-hero";
 import { RevealItem, RevealStagger } from "@/components/ui-fx/reveal";
+import { resolveStorageUrlOrNull } from "@/lib/storage";
 
 export const metadata: Metadata = {
   title: "Trainers",
@@ -11,7 +12,10 @@ export const metadata: Metadata = {
 };
 
 export default async function TrainersPage() {
-  const trainers = await getActiveTrainers();
+  const trainersRaw = await getActiveTrainers();
+  const trainers = await Promise.all(
+    trainersRaw.map(async (t) => ({ ...t, photoUrl: await resolveStorageUrlOrNull(t.photoUrl) }))
+  );
 
   return (
     <>

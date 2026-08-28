@@ -20,6 +20,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getCurrentTrainer } from "@/lib/auth/dal";
 import { logoutTrainer } from "@/lib/actions/auth";
+import { resolveStorageUrlOrNull } from "@/lib/storage";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -31,6 +32,7 @@ const NAV = [
 
 export default async function TrainerLayout({ children }: { children: ReactNode }) {
   const trainer = await getCurrentTrainer();
+  const photoUrl = await resolveStorageUrlOrNull(trainer?.photoUrl);
 
   return (
     <SidebarProvider>
@@ -64,7 +66,7 @@ export default async function TrainerLayout({ children }: { children: ReactNode 
             <SidebarMenuItem>
               <div className="flex items-center gap-2 px-2 py-1.5 group-data-[collapsible=icon]:hidden">
                 <Avatar className="h-8 w-8">
-                  {trainer?.photoUrl ? <AvatarImage src={trainer.photoUrl} alt={trainer.name} /> : null}
+                  {trainer && photoUrl ? <AvatarImage src={photoUrl} alt={trainer.name} /> : null}
                   <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">
                     {trainer?.name?.charAt(0) ?? "T"}
                   </AvatarFallback>

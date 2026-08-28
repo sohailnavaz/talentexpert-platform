@@ -2,10 +2,15 @@ import Image from "next/image";
 import { ArrowUpRight, Building2 } from "lucide-react";
 import { SectionHeading } from "@/components/site/section-heading";
 import { RevealItem, RevealStagger } from "@/components/ui-fx/reveal";
+import { resolveStorageUrlOrNull } from "@/lib/storage";
 import type { Placement } from "@/generated/prisma";
 
-export function PlacementsWall({ placements }: { placements: Placement[] }) {
+export async function PlacementsWall({ placements }: { placements: Placement[] }) {
   if (placements.length === 0) return null;
+
+  const resolvedPlacements = await Promise.all(
+    placements.map(async (p) => ({ ...p, photoUrl: await resolveStorageUrlOrNull(p.photoUrl) }))
+  );
 
   return (
     <section className="py-14 sm:py-20">
@@ -16,7 +21,7 @@ export function PlacementsWall({ placements }: { placements: Placement[] }) {
           description="Real hiring outcomes, not projected numbers."
         />
         <RevealStagger className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border lg:grid-cols-4">
-          {placements.map((p) => (
+          {resolvedPlacements.map((p) => (
             <RevealItem key={p.id}>
               <div className="group flex h-full flex-col justify-between bg-card p-3 transition-colors hover:bg-secondary/40 sm:p-5">
                 <div className="flex items-start justify-between">

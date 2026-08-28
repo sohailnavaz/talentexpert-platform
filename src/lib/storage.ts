@@ -78,14 +78,20 @@ export async function createPresignedUploadUrl(
   return { uploadUrl, publicUrl: `${publicBaseUrl.replace(/\/$/, "")}/${key}` };
 }
 
-const VIEW_URL_EXPIRY_SECONDS = 4 * 60 * 60;
+const VIDEO_URL_EXPIRY_SECONDS = 4 * 60 * 60;
+const DEFAULT_ASSET_URL_EXPIRY_SECONDS = 24 * 60 * 60;
 
 /**
  * If `url` points at our own storage bucket, swap it for a short-lived signed
  * GET URL so a saved link can't be replayed/redistributed indefinitely.
- * Anything else (YouTube, Vimeo, some other host) is returned unchanged.
+ * Anything else (a pasted YouTube/Vimeo/external link) is returned unchanged
+ * — callers that let admins paste an arbitrary URL (photos, thumbnails,
+ * cover images) rely on this to avoid trying to sign a non-R2 host.
  */
-export async function resolveVideoPlaybackUrl(url: string): Promise<string> {
+export async function resolveStorageUrl(
+  url: string,
+  expirySeconds = DEFAULT_ASSET_URL_EXPIRY_SECONDS
+): Promise<string> {
   const s3 = getS3Client();
   const bucket = process.env.S3_BUCKET;
   const publicBaseUrl = process.env.S3_PUBLIC_BASE_URL;
@@ -96,5 +102,21 @@ export async function resolveVideoPlaybackUrl(url: string): Promise<string> {
 
   const key = url.slice(prefix.length);
   const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-  return getSignedUrl(s3, command, { expiresIn: VIEW_URL_EXPIRY_SECONDS });
+  return getSignedUrl(s3, command, { expiresIn: expirySeconds });
 }
+
+export async function resolveStorageUrlOrNull(
+  url: string | null | undefined,
+  expirySeconds?: number
+): Promise<string | null> {
+  if (!url) return null;
+  return resolveStorageUrl(url, expirySeconds);
+}
+
+export function isSignableStorageUrl(url: string | null | undefined): boolean {
+  const publicBaseUrl = process.env.S3_PUBLIC_BASE_URL;
+  if (!url || !publicBaseUrl) return false;
+  return url.startsWith(`${publicBaseUrl.replace(/\/$/, "")}/`);
+}
+
+export { VIDEO_URL_EXPIRY_SECONDS };

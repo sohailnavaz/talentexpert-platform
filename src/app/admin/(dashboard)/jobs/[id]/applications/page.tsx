@@ -12,6 +12,7 @@ import {
 import { BackLink } from "@/components/admin/back-link";
 import { formatDate } from "@/lib/format";
 import { SearchParamInput } from "@/components/shared/search-param-input";
+import { resolveStorageUrlOrNull } from "@/lib/storage";
 import type { Prisma } from "@/generated/prisma";
 
 export const metadata: Metadata = { title: "Applications" };
@@ -44,7 +45,10 @@ export default async function JobApplicationsPage({
       : {}),
   };
 
-  const applications = await db.jobApplication.findMany({ where, orderBy: { createdAt: "desc" } });
+  const applicationsRaw = await db.jobApplication.findMany({ where, orderBy: { createdAt: "desc" } });
+  const applications = await Promise.all(
+    applicationsRaw.map(async (a) => ({ ...a, resumeUrl: await resolveStorageUrlOrNull(a.resumeUrl) }))
+  );
 
   return (
     <div className="space-y-6">

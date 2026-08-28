@@ -22,6 +22,7 @@ import { BrandWatermark } from "@/components/site/brand-watermark";
 import { formatINR, modeLabels } from "@/lib/format";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { resolveStorageUrlOrNull } from "@/lib/storage";
 
 export async function generateMetadata({
   params,
@@ -48,6 +49,10 @@ export default async function CourseDetailPage({
 
   const related = await getRelatedCourses(course.id, course.categoryId);
   const faqs = (course.faqs as { q: string; a: string }[] | null) ?? [];
+  const [brochureUrl, trainerPhotoUrl] = await Promise.all([
+    resolveStorageUrlOrNull(course.brochureUrl),
+    resolveStorageUrlOrNull(course.trainer?.photoUrl),
+  ]);
 
   const avgRating =
     course.reviews.length > 0
@@ -153,9 +158,9 @@ export default async function CourseDetailPage({
             >
               Talk to a counsellor
             </EnquiryDialog>
-            {course.brochureUrl ? (
+            {brochureUrl ? (
               <a
-                href={course.brochureUrl}
+                href={brochureUrl}
                 className="flex items-center justify-center gap-1.5 text-sm text-white/70 hover:text-white"
               >
                 <Download className="h-4 w-4" /> Download brochure
@@ -264,8 +269,8 @@ export default async function CourseDetailPage({
               </h3>
               <div className="mt-3 flex items-center gap-3">
                 <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-muted">
-                  {course.trainer.photoUrl ? (
-                    <Image src={course.trainer.photoUrl} alt={course.trainer.name} fill className="object-cover" />
+                  {trainerPhotoUrl ? (
+                    <Image src={trainerPhotoUrl} alt={course.trainer.name} fill className="object-cover" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-primary/10 font-heading font-bold text-primary">
                       {course.trainer.name.charAt(0)}

@@ -11,7 +11,7 @@ import { VideoEmbed } from "@/components/site/video-embed";
 import { FreePreviewForm } from "@/components/site/free-preview-form";
 import { formatDate, formatINR, modeLabels } from "@/lib/format";
 import { getActiveOffer, computeEffectiveFee } from "@/lib/pricing";
-import { resolveVideoPlaybackUrl } from "@/lib/storage";
+import { resolveStorageUrl, VIDEO_URL_EXPIRY_SECONDS } from "@/lib/storage";
 
 export const metadata: Metadata = { title: "Free intro class" };
 
@@ -43,7 +43,9 @@ export default async function FreePreviewPage({
   if (studentSession) {
     await ensureTrialEnrollment(studentSession.studentId, batch.id);
   }
-  const playbackUrl = studentSession ? await resolveVideoPlaybackUrl(previewSession.recordingUrl) : null;
+  const playbackUrl = studentSession
+    ? await resolveStorageUrl(previewSession.recordingUrl, VIDEO_URL_EXPIRY_SECONDS)
+    : null;
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 px-4 py-12 sm:px-6 lg:py-16">
