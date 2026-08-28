@@ -27,6 +27,7 @@ export async function getBatchForTrainer(trainerId: string, batchId: string) {
       course: { select: { title: true, slug: true } },
       sessions: { orderBy: { date: "desc" } },
       materials: { orderBy: { createdAt: "desc" } },
+      announcements: { orderBy: { createdAt: "desc" } },
       enrollments: {
         where: { status: "PAID" },
         select: { id: true, enrollmentCode: true, student: { select: { name: true, email: true } } },

@@ -46,8 +46,20 @@ export async function getNextSessionForStudent(studentId: string) {
   });
 }
 
-export async function getPortalAnnouncements() {
-  return getActiveAnnouncements("PORTAL", { take: 5 });
+export async function getStudentBatchIds(studentId: string): Promise<string[]> {
+  const enrollments = await db.enrollment.findMany({
+    where: { studentId, OR: [{ status: "PAID" }, { isTrial: true }] },
+    select: { batchId: true },
+  });
+  return enrollments.map((e) => e.batchId);
+}
+
+export async function getPortalAnnouncements(
+  studentId: string,
+  opts: { popupOnly?: boolean; take?: number } = {}
+) {
+  const batchIds = await getStudentBatchIds(studentId);
+  return getActiveAnnouncements("PORTAL", { take: 5, ...opts, batchIds });
 }
 
 export async function getStudentPayments(studentId: string) {

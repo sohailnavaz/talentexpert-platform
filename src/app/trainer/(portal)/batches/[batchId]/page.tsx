@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, Download, FileText, MessageSquare, Users, Video } from "lucide-react";
+import { CalendarDays, Download, FileText, Megaphone, MessageSquare, Users, Video, X } from "lucide-react";
 import { verifyTrainerSession } from "@/lib/auth/dal";
 import { getAttendanceForBatch, getBatchForTrainer } from "@/lib/data/trainer-portal";
 import { getBatchMessages, postTrainerBatchMessage } from "@/lib/actions/batch-messages";
 import { saveAttendance } from "@/lib/actions/attendance";
+import { createBatchAnnouncement, deleteBatchAnnouncement } from "@/lib/actions/trainer-announcements";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Accordion,
   AccordionContent,
@@ -124,6 +127,44 @@ export default async function TrainerBatchPage({
                 ))}
               </div>
             )}
+          </section>
+
+          <section>
+            <h2 className="flex items-center gap-2 font-heading text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              <Megaphone className="h-4 w-4" /> Batch announcements
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">Visible only to students enrolled in this batch.</p>
+            <form
+              action={createBatchAnnouncement.bind(null, batch.id, `/trainer/batches/${batch.id}`)}
+              className="mt-3 space-y-2"
+            >
+              <Input name="title" placeholder="Title" required />
+              <Textarea name="body" placeholder="Message" rows={2} required />
+              <Button type="submit" size="sm">
+                Post announcement
+              </Button>
+            </form>
+            <div className="mt-4 space-y-2">
+              {batch.announcements.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No announcements yet.</p>
+              ) : (
+                batch.announcements.map((a) => (
+                  <Card key={a.id}>
+                    <CardContent className="flex items-start justify-between gap-2 p-3 text-sm">
+                      <div className="min-w-0">
+                        <p className="font-medium">{a.title}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{a.body}</p>
+                      </div>
+                      <form action={deleteBatchAnnouncement.bind(null, a.id, `/trainer/batches/${batch.id}`)}>
+                        <Button type="submit" size="icon" variant="ghost" className="h-6 w-6 shrink-0" aria-label="Delete announcement">
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </form>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
           </section>
 
           <section>

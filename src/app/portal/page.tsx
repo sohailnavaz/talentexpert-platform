@@ -16,7 +16,7 @@ export default async function PortalDashboardPage() {
   const [enrollments, nextSession, announcements] = await Promise.all([
     getStudentEnrollments(session.studentId),
     getNextSessionForStudent(session.studentId),
-    getPortalAnnouncements(),
+    getPortalAnnouncements(session.studentId),
   ]);
 
   return (

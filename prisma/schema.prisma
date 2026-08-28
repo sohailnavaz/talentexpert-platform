@@ -218,11 +218,12 @@ model Batch {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
-  offers      Offer[]
-  enrollments Enrollment[]
-  sessions    ClassSession[]
-  materials   Material[]
-  messages    BatchMessage[]
+  offers        Offer[]
+  enrollments   Enrollment[]
+  sessions      ClassSession[]
+  materials     Material[]
+  messages      BatchMessage[]
+  announcements Announcement[]
 
   @@index([courseId])
   @@index([status])
@@ -448,10 +449,14 @@ model Announcement {
   audience  AnnouncementAudience @default(BOTH)
   priority  Int                  @default(0)
   showPopup Boolean              @default(false)
+  batchId   String?
+  batch     Batch?               @relation(fields: [batchId], references: [id], onDelete: Cascade)
   startAt   DateTime             @default(now())
   endAt     DateTime?
   active    Boolean              @default(true)
   createdAt DateTime             @default(now())
+
+  @@index([batchId])
 }
 
 // ---------------------------------------------------------------------------

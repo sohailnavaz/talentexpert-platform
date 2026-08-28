@@ -24,7 +24,7 @@ import { formatMemberId } from "@/lib/format";
 import { generateAvatarDataUri } from "@/lib/avatar";
 import { VerifyEmailBanner } from "@/components/portal/verify-email-banner";
 import { AnnouncementPopup } from "@/components/site/announcement-popup";
-import { getActiveAnnouncements } from "@/lib/data/announcements";
+import { getPortalAnnouncements } from "@/lib/data/portal";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -36,10 +36,10 @@ const NAV = [
 ];
 
 export default async function PortalLayout({ children }: { children: ReactNode }) {
-  const [student, popupAnnouncements] = await Promise.all([
-    getCurrentStudent(),
-    getActiveAnnouncements("PORTAL", { popupOnly: true, take: 3 }),
-  ]);
+  const student = await getCurrentStudent();
+  const popupAnnouncements = student
+    ? await getPortalAnnouncements(student.id, { popupOnly: true, take: 3 })
+    : [];
 
   return (
     <SidebarProvider>

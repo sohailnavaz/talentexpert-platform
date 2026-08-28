@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 
 export async function getActiveAnnouncements(
   audience: "WEBSITE" | "PORTAL",
-  opts: { popupOnly?: boolean; take?: number } = {}
+  opts: { popupOnly?: boolean; take?: number; batchIds?: string[] } = {}
 ) {
   const now = new Date();
   return db.announcement.findMany({
@@ -10,7 +10,10 @@ export async function getActiveAnnouncements(
       active: true,
       audience: { in: [audience, "BOTH"] },
       startAt: { lte: now },
-      OR: [{ endAt: null }, { endAt: { gte: now } }],
+      AND: [
+        { OR: [{ endAt: null }, { endAt: { gte: now } }] },
+        { OR: [{ batchId: null }, { batchId: { in: opts.batchIds ?? [] } }] },
+      ],
       ...(opts.popupOnly ? { showPopup: true } : {}),
     },
     orderBy: [{ priority: "desc" }, { createdAt: "desc" }],
