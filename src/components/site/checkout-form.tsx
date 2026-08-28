@@ -67,6 +67,12 @@ export function CheckoutForm({
         return;
       }
 
+      if (result.couponDiscount > 0) {
+        toast.success(
+          `Coupon${result.couponCode ? ` ${result.couponCode}` : ""} applied — you saved ${formatINR(result.couponDiscount)}. Total: ${formatINR(result.amount / 100)}.`
+        );
+      }
+
       const rzp = new window.Razorpay({
         key: result.keyId,
         amount: result.amount,
@@ -134,6 +140,7 @@ export function CheckoutForm({
                 name="name"
                 placeholder="Your name"
                 defaultValue={knownStudent?.name}
+                inputSize="lg"
                 required
               />
             </div>
@@ -146,6 +153,7 @@ export function CheckoutForm({
                   type="email"
                   placeholder="you@email.com"
                   defaultValue={knownStudent?.email}
+                  inputSize="lg"
                   required
                 />
               </div>
@@ -156,6 +164,7 @@ export function CheckoutForm({
                   name="phone"
                   placeholder="10-digit mobile"
                   defaultValue={knownStudent?.phone}
+                  inputSize="lg"
                   required
                 />
               </div>
@@ -167,13 +176,14 @@ export function CheckoutForm({
                 name="whatsapp"
                 placeholder="Same as phone if left blank"
                 defaultValue={knownStudent?.whatsapp ?? undefined}
+                inputSize="lg"
               />
             </div>
           </>
         )}
         <div className="space-y-1.5">
           <Label htmlFor="co-coupon">Coupon code (optional)</Label>
-          <Input id="co-coupon" name="couponCode" placeholder="e.g. WELCOME10" className="uppercase" />
+          <Input id="co-coupon" name="couponCode" placeholder="e.g. WELCOME10" inputSize="lg" className="uppercase" />
         </div>
         {!knownStudent ? (
           <p className="text-xs text-muted-foreground">

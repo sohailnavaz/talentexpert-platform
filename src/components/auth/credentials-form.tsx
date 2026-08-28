@@ -39,6 +39,7 @@ export function CredentialsForm({
           type="email"
           required
           placeholder="you@email.com"
+          inputSize="lg"
           className="border-white/15 bg-white/5 text-white placeholder:text-white/40"
         />
       </div>
@@ -52,6 +53,7 @@ export function CredentialsForm({
           type="password"
           required
           placeholder="••••••••"
+          inputSize="lg"
           className="border-white/15 bg-white/5 text-white placeholder:text-white/40"
         />
       </div>

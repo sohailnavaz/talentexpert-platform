@@ -47,6 +47,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
           required
           minLength={8}
           placeholder="At least 8 characters"
+          inputSize="lg"
           className="border-white/15 bg-white/5 text-white placeholder:text-white/40"
         />
       </div>

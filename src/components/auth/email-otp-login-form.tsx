@@ -49,7 +49,7 @@ export function EmailOtpLoginForm() {
             maxLength={6}
             required
             placeholder="123456"
-            className={fieldClass}
+            inputSize="lg" className={fieldClass}
           />
         </div>
         {!verifyState.ok && verifyState.message ? (
@@ -81,7 +81,7 @@ export function EmailOtpLoginForm() {
           placeholder="you@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className={fieldClass}
+          inputSize="lg" className={fieldClass}
         />
       </div>
       {!requestState.ok && requestState.message ? (

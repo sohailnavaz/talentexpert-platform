@@ -28,19 +28,19 @@ export function SignupForm() {
         <Label htmlFor="su-name" className="text-white/80">
           Full name
         </Label>
-        <Input id="su-name" name="name" required placeholder="Your name" className={fieldClass} />
+        <Input id="su-name" name="name" required placeholder="Your name" inputSize="lg" className={fieldClass} />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="su-email" className="text-white/80">
           Email
         </Label>
-        <Input id="su-email" name="email" type="email" required placeholder="you@email.com" className={fieldClass} />
+        <Input id="su-email" name="email" type="email" required placeholder="you@email.com" inputSize="lg" className={fieldClass} />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="su-phone" className="text-white/80">
           Phone
         </Label>
-        <Input id="su-phone" name="phone" required placeholder="10-digit mobile" className={fieldClass} />
+        <Input id="su-phone" name="phone" required placeholder="10-digit mobile" inputSize="lg" className={fieldClass} />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="su-password" className="text-white/80">
@@ -52,7 +52,7 @@ export function SignupForm() {
           type="password"
           required
           placeholder="At least 8 characters"
-          className={fieldClass}
+          inputSize="lg" className={fieldClass}
         />
       </div>
       {!state.ok && state.message ? (

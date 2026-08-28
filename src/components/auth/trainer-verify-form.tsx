@@ -28,7 +28,9 @@ export function TrainerVerifyForm() {
   const [otp, setOtp] = useState("");
 
   useEffect(() => {
-    if (otpState.ok && otpState.message) setVerified(true);
+    if (!otpState.ok || !otpState.message) return;
+    const timer = setTimeout(() => setVerified(true), 0);
+    return () => clearTimeout(timer);
   }, [otpState]);
 
   if (verified) {
@@ -48,7 +50,7 @@ export function TrainerVerifyForm() {
             required
             minLength={8}
             placeholder="At least 8 characters"
-            className={fieldClass}
+            inputSize="lg" className={fieldClass}
           />
         </div>
         {!passwordState.ok && passwordState.message ? (
@@ -73,7 +75,7 @@ export function TrainerVerifyForm() {
           placeholder="you@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className={fieldClass}
+          inputSize="lg" className={fieldClass}
         />
       </div>
       <div className="space-y-1.5">
@@ -89,7 +91,7 @@ export function TrainerVerifyForm() {
           placeholder="123456"
           value={otp}
           onChange={(e) => setOtp(e.target.value)}
-          className={fieldClass}
+          inputSize="lg" className={fieldClass}
         />
         <p className="text-xs text-white/40">Check the email sent when your trainer portal access was created.</p>
       </div>

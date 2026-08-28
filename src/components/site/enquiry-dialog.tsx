@@ -45,10 +45,10 @@ export function EnquiryDialog({
   const pathname = usePathname();
 
   useEffect(() => {
-    if (state.ok) {
-      toast.success(state.message ?? "Thanks! We'll be in touch shortly.");
-      setOpen(false);
-    }
+    if (!state.ok) return;
+    toast.success(state.message ?? "Thanks! We'll be in touch shortly.");
+    const timer = setTimeout(() => setOpen(false), 0);
+    return () => clearTimeout(timer);
   }, [state]);
 
   return (
@@ -65,7 +65,7 @@ export function EnquiryDialog({
           <input type="hidden" name="sourcePage" value={pathname} />
           <div className="space-y-1.5">
             <Label htmlFor="enq-name">Full name</Label>
-            <Input id="enq-name" name="name" placeholder="Your name" required />
+            <Input id="enq-name" name="name" placeholder="Your name" inputSize="lg" required />
             {state.errors?.name ? (
               <p className="text-xs text-destructive">{state.errors.name[0]}</p>
             ) : null}
@@ -73,14 +73,14 @@ export function EnquiryDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="enq-email">Email</Label>
-              <Input id="enq-email" type="email" name="email" placeholder="you@email.com" required />
+              <Input id="enq-email" type="email" name="email" placeholder="you@email.com" inputSize="lg" required />
               {state.errors?.email ? (
                 <p className="text-xs text-destructive">{state.errors.email[0]}</p>
               ) : null}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="enq-phone">Phone</Label>
-              <Input id="enq-phone" name="phone" placeholder="10-digit mobile" required />
+              <Input id="enq-phone" name="phone" placeholder="10-digit mobile" inputSize="lg" required />
               {state.errors?.phone ? (
                 <p className="text-xs text-destructive">{state.errors.phone[0]}</p>
               ) : null}
@@ -93,6 +93,7 @@ export function EnquiryDialog({
               name="courseInterest"
               placeholder="e.g. Full Stack Development"
               defaultValue={courseInterest}
+              inputSize="lg"
             />
           </div>
           <div className="space-y-1.5">
