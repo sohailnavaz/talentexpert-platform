@@ -14,8 +14,8 @@ import { FinalCta } from "@/components/site/home/final-cta";
 export default async function HomePage() {
   const [courses, batches, placements, testimonials, posts, studentsCount, coursesCount] =
     await Promise.all([
-      getFeaturedCourses(6),
-      getUpcomingBatches({ take: 4 }),
+      getFeaturedCourses(3),
+      getUpcomingBatches({ take: 2 }),
       getActivePlacements(10),
       getActiveTestimonials(8),
       getPublishedPosts({ take: 3 }),
