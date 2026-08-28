@@ -1,6 +1,6 @@
 import { createAvatar } from "@dicebear/core";
-import { avataaars } from "@dicebear/collection";
+import { micah } from "@dicebear/collection";
 
 export function generateAvatarDataUri(seed: string) {
-  return createAvatar(avataaars, { seed, scale: 85, radius: 50 }).toDataUri();
+  return createAvatar(micah, { seed }).toDataUri();
 }

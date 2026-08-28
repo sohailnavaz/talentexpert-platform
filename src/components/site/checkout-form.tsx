@@ -22,19 +22,24 @@ type RazorpaySuccessResponse = {
   razorpay_signature: string;
 };
 
+type KnownStudent = { name: string; email: string; phone: string; whatsapp: string | null };
+
 export function CheckoutForm({
   batchId,
   courseTitle,
   amount,
+  knownStudent,
 }: {
   batchId: string;
   courseTitle: string;
   amount: number;
+  knownStudent?: KnownStudent | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [razorpayReady, setRazorpayReady] = useState(false);
+  const [editingDetails, setEditingDetails] = useState(!knownStudent);
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -98,32 +103,84 @@ export function CheckoutForm({
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" onLoad={() => setRazorpayReady(true)} />
       <form action={handleSubmit} className="space-y-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="co-name">Full name</Label>
-          <Input id="co-name" name="name" placeholder="Your name" required />
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="co-email">Email</Label>
-            <Input id="co-email" name="email" type="email" placeholder="you@email.com" required />
+        {knownStudent && !editingDetails ? (
+          <div className="space-y-3 rounded-xl border border-border bg-secondary/40 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-medium">Checking out as</p>
+              <button
+                type="button"
+                onClick={() => setEditingDetails(true)}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                Edit details
+              </button>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p className="text-foreground">{knownStudent.name}</p>
+              <p>{knownStudent.email}</p>
+              <p>{knownStudent.phone}</p>
+            </div>
+            <input type="hidden" name="name" value={knownStudent.name} />
+            <input type="hidden" name="email" value={knownStudent.email} />
+            <input type="hidden" name="phone" value={knownStudent.phone} />
+            {knownStudent.whatsapp ? <input type="hidden" name="whatsapp" value={knownStudent.whatsapp} /> : null}
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="co-phone">Phone</Label>
-            <Input id="co-phone" name="phone" placeholder="10-digit mobile" required />
-          </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="co-whatsapp">WhatsApp number (optional)</Label>
-          <Input id="co-whatsapp" name="whatsapp" placeholder="Same as phone if left blank" />
-        </div>
+        ) : (
+          <>
+            <div className="space-y-1.5">
+              <Label htmlFor="co-name">Full name</Label>
+              <Input
+                id="co-name"
+                name="name"
+                placeholder="Your name"
+                defaultValue={knownStudent?.name}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="co-email">Email</Label>
+                <Input
+                  id="co-email"
+                  name="email"
+                  type="email"
+                  placeholder="you@email.com"
+                  defaultValue={knownStudent?.email}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="co-phone">Phone</Label>
+                <Input
+                  id="co-phone"
+                  name="phone"
+                  placeholder="10-digit mobile"
+                  defaultValue={knownStudent?.phone}
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="co-whatsapp">WhatsApp number (optional)</Label>
+              <Input
+                id="co-whatsapp"
+                name="whatsapp"
+                placeholder="Same as phone if left blank"
+                defaultValue={knownStudent?.whatsapp ?? undefined}
+              />
+            </div>
+          </>
+        )}
         <div className="space-y-1.5">
           <Label htmlFor="co-coupon">Coupon code (optional)</Label>
           <Input id="co-coupon" name="couponCode" placeholder="e.g. WELCOME10" className="uppercase" />
         </div>
-        <p className="text-xs text-muted-foreground">
-          We&apos;ll create your student portal account with this email — you&apos;ll get your login details right
-          after enrolling.
-        </p>
+        {!knownStudent ? (
+          <p className="text-xs text-muted-foreground">
+            We&apos;ll create your student portal account with this email — you&apos;ll get your login details right
+            after enrolling.
+          </p>
+        ) : null}
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
         <Button type="submit" size="lg" className="w-full" disabled={pending}>
           {pending ? "Processing..." : amount === 0 ? "Confirm free enrolment" : `Pay ${formatINR(amount)} securely`}

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckoutForm } from "@/components/site/checkout-form";
 import { formatDate, formatINR, modeLabels } from "@/lib/format";
 import { getActiveOffer, computeEffectiveFee } from "@/lib/pricing";
+import { getStudentSession } from "@/lib/auth/session";
 
 export const metadata: Metadata = { title: "Enrol now" };
 
@@ -26,6 +27,14 @@ export default async function CheckoutPage({
   const seatsLeft = Math.max(0, batch.seatTotal - batch.seatsFilled);
   const offer = getActiveOffer(batch.offers);
   const { effectiveFee, discountAmount } = computeEffectiveFee(Number(batch.fee), offer);
+
+  const studentSession = await getStudentSession();
+  const knownStudent = studentSession
+    ? await db.student.findUnique({
+        where: { id: studentSession.studentId },
+        select: { name: true, email: true, phone: true, whatsapp: true },
+      })
+    : null;
 
   if (batch.status === "COMPLETED" || seatsLeft <= 0) {
     return (
@@ -95,7 +104,12 @@ export default async function CheckoutPage({
       <div className="rounded-2xl border border-border bg-card p-6">
         <h2 className="font-heading text-lg font-semibold">Your details</h2>
         <div className="mt-4">
-          <CheckoutForm batchId={batch.id} courseTitle={batch.course.title} amount={effectiveFee} />
+          <CheckoutForm
+            batchId={batch.id}
+            courseTitle={batch.course.title}
+            amount={effectiveFee}
+            knownStudent={knownStudent}
+          />
         </div>
       </div>
     </div>
