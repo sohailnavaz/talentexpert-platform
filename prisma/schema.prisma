@@ -432,6 +432,8 @@ model BatchMessage {
   adminId    String?
   admin      AdminUser?        @relation(fields: [adminId], references: [id])
   body       String            @db.Text
+  attachmentUrl  String?
+  attachmentName String?
   createdAt  DateTime          @default(now())
 
   @@index([batchId])
