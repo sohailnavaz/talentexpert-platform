@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, CalendarPlus, Clock, Download, FileText, Lock, MessageSquare, Video } from "lucide-react";
+import { Award, CalendarDays, CalendarPlus, Clock, Download, FileText, Lock, MessageSquare, Video } from "lucide-react";
 import { verifyStudentSession } from "@/lib/auth/dal";
 import { getEnrollmentForStudent } from "@/lib/data/portal";
 import { getBatchMessages, postStudentBatchMessage } from "@/lib/actions/batch-messages";
@@ -182,16 +182,27 @@ export default async function CourseWorkspacePage({
             Enrollment ID: {enrollment.enrollmentCode} · Trainer: {batch.trainer?.name ?? "TBA"}
           </p>
         </div>
-        {batch.sessions.length > 0 ? (
-          <Button
-            variant="outline"
-            size="sm"
-            render={<a href={`/api/calendar/enrollment/${enrollment.id}`} />}
-            nativeButton={false}
-          >
-            <CalendarPlus className="h-4 w-4" /> Download schedule (.ics)
-          </Button>
-        ) : null}
+        <div className="flex flex-wrap gap-2">
+          {batch.sessions.length > 0 ? (
+            <Button
+              variant="outline"
+              size="sm"
+              render={<a href={`/api/calendar/enrollment/${enrollment.id}`} />}
+              nativeButton={false}
+            >
+              <CalendarPlus className="h-4 w-4" /> Download schedule (.ics)
+            </Button>
+          ) : null}
+          {enrollment.completedAt ? (
+            <Button
+              size="sm"
+              render={<a href={`/api/certificate/${enrollment.id}`} />}
+              nativeButton={false}
+            >
+              <Award className="h-4 w-4" /> Download certificate
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {pastSessions.length > 0 ? (

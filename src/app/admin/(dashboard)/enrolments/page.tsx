@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { CheckCircle2 } from "lucide-react";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -10,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDate, formatINR } from "@/lib/format";
+import { setEnrollmentCompletionAsAdmin } from "@/lib/actions/admin-enrolments";
 
 export const metadata: Metadata = { title: "Enrolments" };
 
@@ -44,6 +47,7 @@ export default async function AdminEnrolmentsPage() {
               <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Completion</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -57,11 +61,19 @@ export default async function AdminEnrolmentsPage() {
                   <Badge variant={statusVariant[e.status] ?? "secondary"}>{e.status}</Badge>
                 </TableCell>
                 <TableCell>{formatDate(e.createdAt)}</TableCell>
+                <TableCell>
+                  <form action={setEnrollmentCompletionAsAdmin.bind(null, e.id, !e.completedAt)}>
+                    <Button type="submit" size="sm" variant={e.completedAt ? "secondary" : "outline"}>
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      {e.completedAt ? "Completed" : "Mark completed"}
+                    </Button>
+                  </form>
+                </TableCell>
               </TableRow>
             ))}
             {enrollments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
                   No enrolments yet.
                 </TableCell>
               </TableRow>

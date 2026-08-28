@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, Download, FileText, Megaphone, MessageSquare, Users, Video, X } from "lucide-react";
+import { CalendarDays, CheckCircle2, Download, FileText, Megaphone, MessageSquare, Users, Video, X } from "lucide-react";
 import { verifyTrainerSession } from "@/lib/auth/dal";
 import { getAttendanceForBatch, getBatchForTrainer, getSessionParticipants } from "@/lib/data/trainer-portal";
 import { SessionViewersPanel } from "@/components/shared/session-viewers-panel";
 import { getBatchMessages, postTrainerBatchMessage } from "@/lib/actions/batch-messages";
 import { saveAttendance } from "@/lib/actions/attendance";
 import { createBatchAnnouncement, deleteBatchAnnouncement } from "@/lib/actions/trainer-announcements";
-import { updateSessionRecordingAsTrainer } from "@/lib/actions/trainer-sessions";
+import { updateSessionRecordingAsTrainer, setEnrollmentCompletion } from "@/lib/actions/trainer-sessions";
 import { SessionRecordingRow } from "@/components/shared/session-recording-row";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -187,9 +187,22 @@ export default async function TrainerBatchPage({
             <div className="mt-3 space-y-2">
               {batch.enrollments.map((e) => (
                 <Card key={e.id}>
-                  <CardContent className="p-3 text-sm">
-                    <p className="font-medium">{e.student.name}</p>
-                    <p className="text-xs text-muted-foreground">{e.student.email}</p>
+                  <CardContent className="flex items-center justify-between gap-2 p-3 text-sm">
+                    <div className="min-w-0">
+                      <p className="font-medium">{e.student.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{e.student.email}</p>
+                    </div>
+                    <form action={setEnrollmentCompletion.bind(null, e.id, batch.id, !e.completedAt)}>
+                      <Button
+                        type="submit"
+                        size="sm"
+                        variant={e.completedAt ? "secondary" : "outline"}
+                        className="shrink-0"
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        {e.completedAt ? "Completed" : "Mark completed"}
+                      </Button>
+                    </form>
                   </CardContent>
                 </Card>
               ))}

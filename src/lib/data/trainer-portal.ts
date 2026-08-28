@@ -30,7 +30,7 @@ export async function getBatchForTrainer(trainerId: string, batchId: string) {
       announcements: { orderBy: { createdAt: "desc" } },
       enrollments: {
         where: { status: "PAID" },
-        select: { id: true, enrollmentCode: true, student: { select: { name: true, email: true } } },
+        select: { id: true, enrollmentCode: true, completedAt: true, student: { select: { name: true, email: true } } },
         orderBy: { createdAt: "asc" },
       },
     },
