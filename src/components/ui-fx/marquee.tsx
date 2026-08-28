@@ -19,7 +19,7 @@ export function Marquee({
   return (
     <div
       className={cn(
-        "group flex overflow-hidden [--gap:1.5rem] gap-[--gap]",
+        "group flex overflow-hidden [--gap:1.5rem] gap-(--gap)",
         vertical ? "flex-col" : "flex-row",
         className
       )}
@@ -28,7 +28,7 @@ export function Marquee({
         <div
           key={i}
           className={cn(
-            "flex shrink-0 justify-around gap-[--gap]",
+            "flex shrink-0 justify-around gap-(--gap)",
             vertical
               ? "animate-marquee-vertical flex-col"
               : "animate-marquee flex-row",
