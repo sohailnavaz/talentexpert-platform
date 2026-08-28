@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/format";
 import { SessionViewersPanel } from "@/components/shared/session-viewers-panel";
+import { SearchParamInput } from "@/components/shared/search-param-input";
 
 export const metadata: Metadata = { title: "Live Classes" };
 
@@ -14,8 +15,13 @@ const LIVE_WINDOW_BEFORE_MS = 30 * 60 * 1000;
 const LIVE_WINDOW_AFTER_MS = 3 * 60 * 60 * 1000;
 const PAST_SESSIONS_LIMIT = 20;
 
-export default async function AdminLiveClassesPage() {
+export default async function AdminLiveClassesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
   await verifyAdminSession();
+  const { q } = await searchParams;
 
   const now = new Date();
   const windowStart = new Date(now.getTime() - LIVE_WINDOW_BEFORE_MS);
@@ -28,7 +34,10 @@ export default async function AdminLiveClassesPage() {
       orderBy: { date: "asc" },
     }),
     db.classSession.findMany({
-      where: { date: { lt: windowStart } },
+      where: {
+        date: { lt: windowStart },
+        ...(q ? { batch: { course: { title: { contains: q, mode: "insensitive" } } } } : {}),
+      },
       include: {
         batch: { include: { course: { select: { title: true } }, trainer: { select: { name: true } } } },
         participants: true,
@@ -82,6 +91,7 @@ export default async function AdminLiveClassesPage() {
         <h2 className="flex items-center gap-2 font-heading text-lg font-semibold">
           <History className="h-4.5 w-4.5 text-primary" /> Past sessions
         </h2>
+        <SearchParamInput placeholder="Search by course title" className="mt-3 max-w-sm" />
         {pastSessions.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">No past sessions yet.</p>
         ) : (

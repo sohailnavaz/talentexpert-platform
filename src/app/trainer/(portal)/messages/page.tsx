@@ -6,12 +6,23 @@ import { getTrainerMessageableStudents } from "@/lib/actions/direct-messages";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { generateAvatarDataUri } from "@/lib/avatar";
+import { SearchParamInput } from "@/components/shared/search-param-input";
 
 export const metadata: Metadata = { title: "Messages", robots: { index: false, follow: false } };
 
-export default async function TrainerMessagesPage() {
+export default async function TrainerMessagesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
   const session = await verifyTrainerSession();
-  const students = await getTrainerMessageableStudents(session.trainerId);
+  const { q } = await searchParams;
+  const allStudents = await getTrainerMessageableStudents(session.trainerId);
+  const students = q
+    ? allStudents.filter(
+        (s) => s.name.toLowerCase().includes(q.toLowerCase()) || s.email.toLowerCase().includes(q.toLowerCase())
+      )
+    : allStudents;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -20,8 +31,12 @@ export default async function TrainerMessagesPage() {
         <p className="mt-1 text-sm text-muted-foreground">Message students from your batches directly.</p>
       </div>
 
+      {allStudents.length > 5 ? <SearchParamInput placeholder="Search by name or email" /> : null}
+
       {students.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No enrolled students to message yet.</p>
+        <p className="text-sm text-muted-foreground">
+          {allStudents.length === 0 ? "No enrolled students to message yet." : "No students match that search."}
+        </p>
       ) : (
         <div className="space-y-2">
           {students.map((s) => (

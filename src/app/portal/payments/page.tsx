@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatINR } from "@/lib/format";
+import { ParamSelect } from "@/components/shared/param-select";
 
 export const metadata: Metadata = { title: "Payments & Receipts" };
 
@@ -16,9 +17,17 @@ const statusVariant: Record<string, "default" | "secondary" | "destructive"> = {
   REFUNDED: "secondary",
 };
 
-export default async function PaymentsPage() {
+const STATUS_OPTIONS = { PAID: "Paid", CREATED: "Created", FAILED: "Failed", REFUNDED: "Refunded" };
+
+export default async function PaymentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
   const session = await verifyStudentSession();
-  const payments = await getStudentPayments(session.studentId);
+  const { status } = await searchParams;
+  const allPayments = await getStudentPayments(session.studentId);
+  const payments = status ? allPayments.filter((p) => p.status === status) : allPayments;
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -27,11 +36,17 @@ export default async function PaymentsPage() {
         <p className="mt-1 text-sm text-muted-foreground">Every transaction on your account, in one place.</p>
       </div>
 
+      {allPayments.length > 3 ? (
+        <ParamSelect paramKey="status" options={STATUS_OPTIONS} allLabel="All statuses" className="sm:w-[180px]" />
+      ) : null}
+
       {payments.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
             <Receipt className="h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">No payments yet.</p>
+            <p className="text-sm text-muted-foreground">
+              {allPayments.length === 0 ? "No payments yet." : "No payments match that filter."}
+            </p>
           </CardContent>
         </Card>
       ) : (

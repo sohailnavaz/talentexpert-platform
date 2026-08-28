@@ -12,13 +12,28 @@ import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/format";
 import { AnnouncementForm } from "@/components/admin/announcement-form";
 import { AnnouncementRowActions } from "@/components/admin/announcement-row-actions";
+import { ParamSelect } from "@/components/shared/param-select";
+import type { AnnouncementAudience, Prisma } from "@/generated/prisma";
 
 export const metadata: Metadata = { title: "Announcements" };
 
 const audienceLabels: Record<string, string> = { WEBSITE: "Website", PORTAL: "Portal", BOTH: "Both" };
+const STATUS_OPTIONS = { active: "Active", inactive: "Inactive" };
 
-export default async function AdminAnnouncementsPage() {
+export default async function AdminAnnouncementsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ audience?: string; status?: string }>;
+}) {
+  const { audience, status } = await searchParams;
+
+  const where: Prisma.AnnouncementWhereInput = {
+    ...(audience && audience in audienceLabels ? { audience: audience as AnnouncementAudience } : {}),
+    ...(status === "active" ? { active: true } : status === "inactive" ? { active: false } : {}),
+  };
+
   const announcements = await db.announcement.findMany({
+    where,
     orderBy: [{ priority: "desc" }, { createdAt: "desc" }],
   });
 
@@ -32,6 +47,11 @@ export default async function AdminAnnouncementsPage() {
       </div>
 
       <AnnouncementForm />
+
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <ParamSelect paramKey="audience" options={audienceLabels} allLabel="All audiences" />
+        <ParamSelect paramKey="status" options={STATUS_OPTIONS} allLabel="All statuses" />
+      </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">
         <Table>

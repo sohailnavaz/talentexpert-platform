@@ -11,25 +11,40 @@ import {
 } from "@/components/ui/table";
 import { BackLink } from "@/components/admin/back-link";
 import { formatDate } from "@/lib/format";
+import { SearchParamInput } from "@/components/shared/search-param-input";
+import type { Prisma } from "@/generated/prisma";
 
 export const metadata: Metadata = { title: "Applications" };
 
 export default async function JobApplicationsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
   const { id } = await params;
+  const { q } = await searchParams;
   const job = await db.jobOpening.findUnique({
     where: { id },
     select: { id: true, title: true },
   });
   if (!job) notFound();
 
-  const applications = await db.jobApplication.findMany({
-    where: { jobOpeningId: id },
-    orderBy: { createdAt: "desc" },
-  });
+  const where: Prisma.JobApplicationWhereInput = {
+    jobOpeningId: id,
+    ...(q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { email: { contains: q, mode: "insensitive" } },
+            { phone: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  };
+
+  const applications = await db.jobApplication.findMany({ where, orderBy: { createdAt: "desc" } });
 
   return (
     <div className="space-y-6">
@@ -40,6 +55,8 @@ export default async function JobApplicationsPage({
           {applications.length} applicant{applications.length === 1 ? "" : "s"} for {job.title}
         </p>
       </div>
+
+      <SearchParamInput placeholder="Search by name, email, or phone" className="max-w-sm" />
 
       <div className="overflow-x-auto rounded-xl border border-border">
         <Table>
