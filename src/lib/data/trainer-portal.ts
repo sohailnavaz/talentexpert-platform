@@ -61,3 +61,21 @@ export async function getSessionParticipants(classSessionId: string) {
     isLive: r.leftAt === null,
   }));
 }
+
+export async function getTrainerDashboardStats(trainerId: string) {
+  const now = new Date();
+  const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  const [totalStudents, sessionsThisWeek, recentMessages] = await Promise.all([
+    db.enrollment.count({ where: { status: "PAID", batch: { trainerId } } }),
+    db.classSession.count({ where: { batch: { trainerId }, date: { gte: now, lte: weekFromNow } } }),
+    db.directMessage.findMany({
+      where: { trainerId, senderRole: "STUDENT" },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      include: { student: { select: { name: true } } },
+    }),
+  ]);
+
+  return { totalStudents, sessionsThisWeek, recentMessages };
+}

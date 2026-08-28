@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, CalendarClock, Users, Video } from "lucide-react";
+import { ArrowRight, CalendarClock, MessageCircle, Users, Video } from "lucide-react";
 import { verifyTrainerSession } from "@/lib/auth/dal";
-import { getNextSessionForTrainer, getTrainerBatches } from "@/lib/data/trainer-portal";
+import { getNextSessionForTrainer, getTrainerBatches, getTrainerDashboardStats } from "@/lib/data/trainer-portal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,10 +12,17 @@ export const metadata: Metadata = { title: "Trainer Dashboard" };
 
 export default async function TrainerDashboardPage() {
   const session = await verifyTrainerSession();
-  const [batches, nextSession] = await Promise.all([
+  const [batches, nextSession, stats] = await Promise.all([
     getTrainerBatches(session.trainerId),
     getNextSessionForTrainer(session.trainerId),
+    getTrainerDashboardStats(session.trainerId),
   ]);
+
+  const statCards = [
+    { label: "Batches", value: batches.length, href: "/trainer" },
+    { label: "Enrolled students", value: stats.totalStudents, href: "/trainer" },
+    { label: "Sessions this week", value: stats.sessionsThisWeek, href: "/trainer" },
+  ];
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -24,6 +31,17 @@ export default async function TrainerDashboardPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           You&apos;re assigned to {batches.length} batch{batches.length === 1 ? "" : "es"}.
         </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {statCards.map((s) => (
+          <Card key={s.label}>
+            <CardContent className="p-5">
+              <p className="font-heading text-2xl font-bold">{s.value}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{s.label}</p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {nextSession ? (
@@ -73,6 +91,36 @@ export default async function TrainerDashboardPage() {
                     <p className="flex items-center gap-1.5">
                       <Users className="h-3.5 w-3.5" /> {b._count.enrollments} enrolled
                     </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between">
+          <h2 className="flex items-center gap-2 font-heading text-lg font-semibold">
+            <MessageCircle className="h-4.5 w-4.5 text-primary" /> Recent messages
+          </h2>
+          <Link href="/trainer/messages" className="text-sm text-primary hover:underline">
+            View all
+          </Link>
+        </div>
+        {stats.recentMessages.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">No messages from students yet.</p>
+        ) : (
+          <div className="mt-3 space-y-2">
+            {stats.recentMessages.map((m) => (
+              <Link key={m.id} href={`/trainer/messages/${m.studentId}`}>
+                <Card className="transition-colors hover:bg-accent">
+                  <CardContent className="flex items-center justify-between gap-3 p-3 text-sm">
+                    <div className="min-w-0">
+                      <p className="font-medium">{m.student.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{m.body}</p>
+                    </div>
+                    <span className="shrink-0 text-xs text-muted-foreground">{formatDate(m.createdAt)}</span>
                   </CardContent>
                 </Card>
               </Link>

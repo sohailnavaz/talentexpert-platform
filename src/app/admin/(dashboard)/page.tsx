@@ -11,6 +11,8 @@ export default async function AdminDashboardPage() {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const liveWindowStart = new Date(now.getTime() - 30 * 60 * 1000);
+  const liveWindowEnd = new Date(now.getTime() + 3 * 60 * 60 * 1000);
 
   const [
     newLeadsCount,
@@ -20,6 +22,10 @@ export default async function AdminDashboardPage() {
     seatsRemainingAgg,
     recentLeads,
     recentPayments,
+    activeTrialStudents,
+    liveClassesNow,
+    activeStudentsTotal,
+    activeTrainersTotal,
   ] = await Promise.all([
     db.lead.count({ where: { status: "NEW" } }),
     db.enrollment.count({ where: { status: "PAID", createdAt: { gte: startOfMonth } } }),
@@ -36,6 +42,10 @@ export default async function AdminDashboardPage() {
       take: 5,
       include: { student: true },
     }),
+    db.enrollment.count({ where: { isTrial: true, trialExpiresAt: { gt: now } } }),
+    db.classSession.count({ where: { date: { gte: liveWindowStart, lte: liveWindowEnd } } }),
+    db.student.count({ where: { active: true } }),
+    db.trainer.count({ where: { active: true } }),
   ]);
 
   const seatsRemaining =
@@ -49,6 +59,13 @@ export default async function AdminDashboardPage() {
     { label: "Seats remaining", value: seatsRemaining, href: "/admin/batches" },
   ];
 
+  const secondaryStats = [
+    { label: "Active trial students", value: activeTrialStudents, href: "/admin/students" },
+    { label: "Live classes now", value: liveClassesNow, href: "/admin/live-classes" },
+    { label: "Active students", value: activeStudentsTotal, href: "/admin/students" },
+    { label: "Active trainers", value: activeTrainersTotal, href: "/admin/trainers" },
+  ];
+
   return (
     <div className="space-y-8">
       <div>
@@ -58,6 +75,19 @@ export default async function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {stats.map((s) => (
+          <Link key={s.label} href={s.href}>
+            <Card className="h-full transition-shadow hover:shadow-md">
+              <CardContent className="p-5">
+                <p className="font-heading text-2xl font-bold">{s.value}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{s.label}</p>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {secondaryStats.map((s) => (
           <Link key={s.label} href={s.href}>
             <Card className="h-full transition-shadow hover:shadow-md">
               <CardContent className="p-5">
