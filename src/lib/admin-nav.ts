@@ -1,6 +1,7 @@
 import {
   BadgeIndianRupee,
   BookOpen,
+  CalendarDays,
   CalendarRange,
   FileText,
   Gift,
@@ -29,7 +30,10 @@ export type AdminNavGroup = { label: string; items: AdminNavItem[] };
 export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
     label: "Overview",
-    items: [{ label: "Dashboard", href: "/admin", icon: LayoutDashboard }],
+    items: [
+      { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+      { label: "Calendar", href: "/admin/calendar", icon: CalendarDays },
+    ],
   },
   {
     label: "Catalogue",
