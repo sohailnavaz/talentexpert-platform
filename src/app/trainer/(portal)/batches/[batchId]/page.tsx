@@ -8,8 +8,16 @@ import { SessionViewersPanel } from "@/components/shared/session-viewers-panel";
 import { getBatchMessages, postTrainerBatchMessage } from "@/lib/actions/batch-messages";
 import { saveAttendance } from "@/lib/actions/attendance";
 import { createBatchAnnouncement, deleteBatchAnnouncement } from "@/lib/actions/trainer-announcements";
-import { updateSessionRecordingAsTrainer, setEnrollmentCompletion } from "@/lib/actions/trainer-sessions";
+import {
+  updateSessionRecordingAsTrainer,
+  setEnrollmentCompletion,
+  addSessionAsTrainer,
+  updateSessionDetailsAsTrainer,
+  deleteSessionAsTrainer,
+} from "@/lib/actions/trainer-sessions";
 import { SessionRecordingRow } from "@/components/shared/session-recording-row";
+import { SessionDetailsEditor } from "@/components/shared/session-details-editor";
+import { AddSessionForm } from "@/components/shared/add-session-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,8 +73,6 @@ export default async function TrainerBatchPage({
             </h2>
             {batch.sessions.length === 0 ? (
               <p className="mt-3 text-sm text-muted-foreground">No sessions scheduled yet.</p>
-            ) : batch.enrollments.length === 0 ? (
-              <p className="mt-3 text-sm text-muted-foreground">No paid enrolments yet — attendance opens once students enrol.</p>
             ) : (
               <Accordion className="mt-3">
                 {batch.sessions.map((s) => (
@@ -75,11 +81,16 @@ export default async function TrainerBatchPage({
                       {s.topic} — {formatDate(s.date)}
                     </AccordionTrigger>
                     <AccordionContent>
+                      <SessionDetailsEditor
+                        session={{ ...s, date: s.date.toISOString() }}
+                        onSave={updateSessionDetailsAsTrainer.bind(null, s.id, batch.id)}
+                        onDelete={deleteSessionAsTrainer.bind(null, s.id, batch.id)}
+                      />
                       <Button
                         render={<Link href={`/trainer/batches/${batch.id}/live/${s.id}`} />}
                         nativeButton={false}
                         size="sm"
-                        className="mb-3"
+                        className="my-3"
                       >
                         <Video className="h-3.5 w-3.5" /> Start / join class
                       </Button>
@@ -90,20 +101,32 @@ export default async function TrainerBatchPage({
                       />
                       <SessionViewersPanel participants={viewersMap.get(s.id) ?? []} />
                       <div className="mt-3">
-                        <AttendanceForm
-                          action={saveAttendance.bind(null, s.id, `/trainer/batches/${batch.id}`)}
-                          students={batch.enrollments.map((e) => ({
-                            enrollmentId: e.id,
-                            name: e.student.name,
-                            present: attendanceMap.get(`${s.id}_${e.id}`) ?? false,
-                          }))}
-                        />
+                        {batch.enrollments.length === 0 ? (
+                          <p className="text-xs text-muted-foreground">
+                            Attendance opens once students enrol.
+                          </p>
+                        ) : (
+                          <AttendanceForm
+                            action={saveAttendance.bind(null, s.id, `/trainer/batches/${batch.id}`)}
+                            students={batch.enrollments.map((e) => ({
+                              enrollmentId: e.id,
+                              name: e.student.name,
+                              present: attendanceMap.get(`${s.id}_${e.id}`) ?? false,
+                            }))}
+                          />
+                        )}
                       </div>
                     </AccordionContent>
                   </AccordionItem>
                 ))}
               </Accordion>
             )}
+            <div className="mt-3">
+              <AddSessionForm
+                onAdd={addSessionAsTrainer.bind(null, batch.id)}
+                dailyEnabled={Boolean(process.env.DAILY_API_KEY)}
+              />
+            </div>
           </section>
 
           <section>
