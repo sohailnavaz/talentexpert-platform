@@ -71,6 +71,7 @@ model Student {
   messages        BatchMessage[]
   sessionViews    SessionParticipant[]
   directMessages  DirectMessage[]
+  grievances      Grievance[]
 
   @@index([email])
 }
@@ -535,6 +536,29 @@ model Lead {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
+  @@index([status])
+}
+
+enum GrievanceStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model Grievance {
+  id         String          @id @default(cuid())
+  studentId  String
+  student    Student         @relation(fields: [studentId], references: [id])
+  subject    String
+  body       String          @db.Text
+  status     GrievanceStatus @default(OPEN)
+  adminReply String?         @db.Text
+  resolvedAt DateTime?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([studentId])
   @@index([status])
 }
 

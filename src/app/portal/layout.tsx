@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { BookOpen, LayoutDashboard, LogOut, MessageCircle, Receipt, UserRound } from "lucide-react";
+import { BookOpen, LayoutDashboard, LogOut, MessageCircle, MessageSquareWarning, Receipt, UserRound } from "lucide-react";
 import { LogoMark } from "@/components/site/logo";
 import {
   Sidebar,
@@ -33,6 +33,7 @@ const NAV = [
   { label: "My Courses", href: "/portal/courses", icon: BookOpen },
   { label: "Messages", href: "/portal/messages", icon: MessageCircle },
   { label: "Payments", href: "/portal/payments", icon: Receipt },
+  { label: "Support", href: "/portal/grievances", icon: MessageSquareWarning },
   { label: "My Profile", href: "/portal/profile", icon: UserRound },
 ];
 
