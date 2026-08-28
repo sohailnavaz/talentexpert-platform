@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { LayoutDashboard, LogOut, UserRound } from "lucide-react";
 import { LogoMark } from "@/components/site/logo";
 import {
   Sidebar,
@@ -17,13 +17,16 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getCurrentTrainer } from "@/lib/auth/dal";
 import { logoutTrainer } from "@/lib/actions/auth";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
-const NAV = [{ label: "Dashboard", href: "/trainer", icon: LayoutDashboard }];
+const NAV = [
+  { label: "Dashboard", href: "/trainer", icon: LayoutDashboard },
+  { label: "My Profile", href: "/trainer/profile", icon: UserRound },
+];
 
 export default async function TrainerLayout({ children }: { children: ReactNode }) {
   const trainer = await getCurrentTrainer();
@@ -60,6 +63,7 @@ export default async function TrainerLayout({ children }: { children: ReactNode 
             <SidebarMenuItem>
               <div className="flex items-center gap-2 px-2 py-1.5 group-data-[collapsible=icon]:hidden">
                 <Avatar className="h-8 w-8">
+                  {trainer?.photoUrl ? <AvatarImage src={trainer.photoUrl} alt={trainer.name} /> : null}
                   <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">
                     {trainer?.name?.charAt(0) ?? "T"}
                   </AvatarFallback>

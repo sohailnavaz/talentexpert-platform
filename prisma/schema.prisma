@@ -102,6 +102,7 @@ model Trainer {
   slug               String   @unique
   photoUrl           String?
   bio                String?
+  phone              String?
   experienceYears    Int?
   expertise          String[] @default([])
   active             Boolean  @default(true)
