@@ -3,6 +3,7 @@
 import "server-only";
 import crypto from "crypto";
 import { z } from "zod";
+import { renderToBuffer } from "@react-pdf/renderer";
 import { db } from "@/lib/db";
 import { razorpay, RAZORPAY_CONFIGURED } from "@/lib/razorpay";
 import { hashPassword, generateTempPassword } from "@/lib/auth/password";
@@ -10,6 +11,8 @@ import { sendEmail, emailButton } from "@/lib/email";
 import { generateEnrollmentCode } from "@/lib/enrollment-code";
 import { getActiveOffer, computeEffectiveFee, computeCouponDiscount } from "@/lib/pricing";
 import { findOrCreateStudent } from "@/lib/student-provisioning";
+import { ReceiptDocument } from "@/lib/receipt";
+import { formatDate, modeLabels } from "@/lib/format";
 
 const detailsSchema = z.object({
   name: z.string().trim().min(2, "Please enter your name"),
@@ -37,6 +40,8 @@ export type StartCheckoutResult =
       name: string;
       email: string;
       phone: string;
+      couponCode?: string;
+      couponDiscount: number;
     }
   | { ok: false; message: string };
 
@@ -71,6 +76,38 @@ async function issuePortalAccessEmail(enrollmentId: string) {
   }
 }
 
+async function issueReceiptEmail(paymentId: string) {
+  const payment = await db.payment.findUniqueOrThrow({
+    where: { id: paymentId },
+    include: { student: true, enrollment: { include: { batch: { include: { course: true } } } } },
+  });
+
+  const batch = payment.enrollment?.batch;
+  const pdf = await renderToBuffer(
+    <ReceiptDocument
+      receiptId={payment.id}
+      paidDate={formatDate(payment.updatedAt)}
+      studentName={payment.student.name}
+      studentEmail={payment.student.email}
+      courseTitle={batch?.course.title ?? "Talent Expert course"}
+      batchMode={batch ? (modeLabels[batch.mode] ?? batch.mode) : "—"}
+      paymentMethod={payment.gateway === "razorpay" ? "Razorpay" : payment.gateway}
+      gatewayReference={payment.gatewayPaymentId ?? payment.gatewayOrderId}
+      amountPaid={Number(payment.amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+      currency={payment.currency}
+    />
+  );
+
+  await sendEmail({
+    to: payment.student.email,
+    subject: "Your Talent Expert payment receipt",
+    html: `<p>Hi ${payment.student.name},</p><p>Thanks for your payment${batch ? ` for <strong>${batch.course.title}</strong>` : ""}. Your receipt is attached.</p>`,
+    attachments: [
+      { filename: `talent-expert-receipt-${payment.id}.pdf`, content: pdf.toString("base64"), contentType: "application/pdf" },
+    ],
+  });
+}
+
 export async function startCheckout(batchId: string, details: CheckoutDetails): Promise<StartCheckoutResult> {
   const parsed = detailsSchema.safeParse(details);
   if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Please check your details." };
@@ -83,7 +120,7 @@ export async function startCheckout(batchId: string, details: CheckoutDetails): 
   const offer = getActiveOffer(batch.offers);
   const { effectiveFee } = computeEffectiveFee(Number(batch.fee), offer);
 
-  let coupon: { id: string; type: string; value: unknown } | null = null;
+  let coupon: { id: string; code: string; type: string; value: unknown } | null = null;
   let couponDiscount = 0;
   if (parsed.data.couponCode) {
     const code = parsed.data.couponCode.toUpperCase();
@@ -205,6 +242,8 @@ export async function startCheckout(batchId: string, details: CheckoutDetails): 
     name: parsed.data.name,
     email: parsed.data.email,
     phone: parsed.data.phone,
+    couponCode: coupon?.code,
+    couponDiscount,
   };
 }
 
@@ -252,6 +291,7 @@ export async function verifyCheckoutPayment(input: {
   }
 
   await issuePortalAccessEmail(enrollment.id);
+  await issueReceiptEmail(payment.id);
 
   return { ok: true };
 }
