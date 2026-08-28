@@ -15,6 +15,8 @@ import {
 import { ConfirmDeleteButton } from "@/components/admin/confirm-delete-button";
 import { TrainerResetPasswordButton } from "@/components/admin/trainer-reset-password-button";
 import { deleteTrainer } from "@/lib/actions/admin-trainers";
+import { formatDate } from "@/lib/format";
+import { describeDevice } from "@/lib/user-agent";
 
 export const metadata: Metadata = { title: "Trainers" };
 
@@ -45,6 +47,7 @@ export default async function AdminTrainersPage() {
               <TableHead>Courses</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Portal access</TableHead>
+              <TableHead>Last login</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -67,6 +70,19 @@ export default async function AdminTrainersPage() {
                     <span className="text-xs text-muted-foreground">No portal access</span>
                   )}
                 </TableCell>
+                <TableCell>
+                  {t.lastLoginAt ? (
+                    <>
+                      <p className="text-sm">{formatDate(t.lastLoginAt)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {describeDevice(t.lastLoginUserAgent) ?? "Unknown device"}
+                        {t.lastLoginIp ? ` · ${t.lastLoginIp}` : ""}
+                      </p>
+                    </>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Never</span>
+                  )}
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     <Button variant="ghost" size="sm" render={<Link href={`/admin/trainers/${t.id}/edit`} />} nativeButton={false}>
@@ -82,7 +98,7 @@ export default async function AdminTrainersPage() {
             ))}
             {trainers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
                   No trainers yet.
                 </TableCell>
               </TableRow>

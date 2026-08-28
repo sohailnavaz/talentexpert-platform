@@ -17,6 +17,7 @@ import {
 } from "@/lib/auth/session";
 import { isRateLimited, recordFailedAttempt, clearAttempts } from "@/lib/rate-limit";
 import { sendVerificationEmail } from "@/lib/actions/signup";
+import { getRequestInfo } from "@/lib/auth/request-info";
 
 const RATE_LIMIT_MESSAGE = "Too many attempts. Please wait a few minutes and try again.";
 
@@ -99,7 +100,11 @@ export async function loginAdmin(
   }
 
   clearAttempts(rateLimitKey);
-  await db.adminUser.update({ where: { id: admin.id }, data: { lastLoginAt: new Date() } });
+  const { ip, userAgent } = await getRequestInfo();
+  await db.adminUser.update({
+    where: { id: admin.id },
+    data: { lastLoginAt: new Date(), lastLoginIp: ip, lastLoginUserAgent: userAgent },
+  });
   await createAdminSession({
     adminId: admin.id,
     name: admin.name,
@@ -144,6 +149,11 @@ export async function loginTrainer(
   }
 
   clearAttempts(rateLimitKey);
+  const { ip, userAgent } = await getRequestInfo();
+  await db.trainer.update({
+    where: { id: trainer.id },
+    data: { lastLoginAt: new Date(), lastLoginIp: ip, lastLoginUserAgent: userAgent },
+  });
   await createTrainerSession({ trainerId: trainer.id, name: trainer.name, email: parsed.data.email });
   redirect("/trainer");
 }

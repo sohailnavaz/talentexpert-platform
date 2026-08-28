@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/format";
+import { describeDevice } from "@/lib/user-agent";
 import { verifyAdminSession } from "@/lib/auth/dal";
 import { NewAdminDialog } from "@/components/admin/new-admin-dialog";
 import { AdminUserRowActions } from "@/components/admin/admin-user-row-actions";
@@ -61,7 +62,19 @@ export default async function AdminUsersPage() {
                 <TableCell>
                   <Badge variant={a.active ? "default" : "secondary"}>{a.active ? "Active" : "Disabled"}</Badge>
                 </TableCell>
-                <TableCell>{a.lastLoginAt ? formatDate(a.lastLoginAt) : "Never"}</TableCell>
+                <TableCell>
+                  {a.lastLoginAt ? (
+                    <>
+                      <p>{formatDate(a.lastLoginAt)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {describeDevice(a.lastLoginUserAgent) ?? "Unknown device"}
+                        {a.lastLoginIp ? ` · ${a.lastLoginIp}` : ""}
+                      </p>
+                    </>
+                  ) : (
+                    "Never"
+                  )}
+                </TableCell>
                 {isSuperAdmin ? (
                   <TableCell className="text-right">
                     <AdminUserRowActions id={a.id} role={a.role} active={a.active} isSelf={a.id === session.adminId} />

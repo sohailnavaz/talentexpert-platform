@@ -14,20 +14,23 @@ import { Button } from "@/components/ui/button";
 
 type PopupAnnouncement = { id: string; title: string; body: string };
 const STORAGE_KEY = "ann-popup-seen";
+const OPEN_DELAY_MS = 5000;
 
 export function AnnouncementPopup({ announcements }: { announcements: PopupAnnouncement[] }) {
   const [queue, setQueue] = useState<PopupAnnouncement[]>([]);
 
   useEffect(() => {
     if (announcements.length === 0) return;
-    let seen: Record<string, boolean> = {};
-    try {
-      seen = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-    } catch {
-      seen = {};
-    }
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is unavailable during SSR; this hydrates the queue once mounted to avoid a hydration mismatch.
-    setQueue(announcements.filter((a) => !seen[a.id]));
+    const timer = setTimeout(() => {
+      let seen: Record<string, boolean> = {};
+      try {
+        seen = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      } catch {
+        seen = {};
+      }
+      setQueue(announcements.filter((a) => !seen[a.id]));
+    }, OPEN_DELAY_MS);
+    return () => clearTimeout(timer);
   }, [announcements]);
 
   function dismissCurrent() {
