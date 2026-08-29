@@ -3,11 +3,13 @@ import { getUpcomingBatches } from "@/lib/data/courses";
 import { PageHero } from "@/components/site/page-hero";
 import { BatchCard } from "@/components/site/batch-card";
 import { RevealItem, RevealStagger } from "@/components/ui-fx/reveal";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "New Batches",
-  description: "All upcoming and ongoing Talent Expert batches — dates, timings and seats left.",
-};
+  description: "All upcoming and ongoing Talent Expert Edu batches — dates, timings and seats left.",
+  path: "/batches",
+});
 
 export default async function BatchesPage() {
   const batches = await getUpcomingBatches();

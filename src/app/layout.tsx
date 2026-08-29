@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { siteConfig } from "@/lib/site-config";
 import "./globals.css";
 
 const fontBody = Inter({
@@ -12,20 +13,19 @@ const fontBody = Inter({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-const siteName = process.env.NEXT_PUBLIC_SITE_NAME ?? "Talent Expert";
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talentexpertedu.com";
+const defaultTitle = `${siteConfig.name} — Career-Focused IT Training & Placements`;
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteName} — Career-Focused IT Training & Placements`,
-    template: `%s | ${siteName}`,
+    default: defaultTitle,
+    template: `%s | ${siteConfig.name}`,
   },
-  description:
-    "Talent Expert is a career-focused training institute offering live online and classroom courses, hands-on batches, placement assistance and industry-recognised certifications.",
+  description: siteConfig.description,
   keywords: [
+    "Talent Expert Edu",
     "Talent Expert",
-    "IT training institute",
+    "IT training institute Hyderabad",
     "online training",
     "software courses",
     "placement training",
@@ -37,18 +37,17 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    siteName,
-    title: `${siteName} — Career-Focused IT Training & Placements`,
-    description:
-      "Live courses, hands-on batches and placement assistance — learn, get certified, get hired.",
-    url: siteUrl,
+    siteName: siteConfig.name,
+    title: defaultTitle,
+    description: siteConfig.description,
+    url: siteConfig.url,
     images: ["/brand/logo-full.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteName} — Career-Focused IT Training & Placements`,
-    description:
-      "Live courses, hands-on batches and placement assistance — learn, get certified, get hired.",
+    title: defaultTitle,
+    description: siteConfig.description,
+    images: ["/brand/logo-full.png"],
   },
   ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
     ? { verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } }

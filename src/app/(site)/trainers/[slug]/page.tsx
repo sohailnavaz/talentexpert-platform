@@ -1,11 +1,22 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getTrainerBySlug } from "@/lib/data/content";
 import { CourseCard } from "@/components/site/course-card";
 import { SectionHeading } from "@/components/site/section-heading";
 import { BrandWatermark } from "@/components/site/brand-watermark";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { resolveStorageUrlOrNull, isSignableStorageUrl } from "@/lib/storage";
+import { siteConfig } from "@/lib/site-config";
+import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -15,7 +26,13 @@ export async function generateMetadata({
   const { slug } = await params;
   const trainer = await getTrainerBySlug(slug);
   if (!trainer) return {};
-  return { title: trainer.name, description: trainer.bio ?? undefined };
+  return pageMetadata({
+    title: trainer.name,
+    description: trainer.bio ?? undefined,
+    path: `/trainers/${trainer.slug}`,
+    image: trainer.photoUrl && !isSignableStorageUrl(trainer.photoUrl) ? trainer.photoUrl : undefined,
+    imageIsItemSpecific: true,
+  });
 }
 
 export default async function TrainerDetailPage({
@@ -27,11 +44,12 @@ export default async function TrainerDetailPage({
   const trainer = await getTrainerBySlug(slug);
   if (!trainer || !trainer.active) notFound();
   const photoUrl = await resolveStorageUrlOrNull(trainer.photoUrl);
+  const trainerUrl = `${siteConfig.url}/trainers/${trainer.slug}`;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
+  const personSchema = {
     "@type": "Person",
     name: trainer.name,
+    url: trainerUrl,
     ...(trainer.bio ? { description: trainer.bio } : {}),
     // Skip R2-hosted photos here: a short-lived signed URL would go dead
     // long before a search crawler ever fetches it. Only include a stable,
@@ -39,7 +57,21 @@ export default async function TrainerDetailPage({
     ...(trainer.photoUrl && !isSignableStorageUrl(trainer.photoUrl) ? { image: trainer.photoUrl } : {}),
     jobTitle: "Trainer",
     knowsAbout: trainer.expertise,
-    worksFor: { "@type": "EducationalOrganization", name: "Talent Expert" },
+    worksFor: { "@type": "EducationalOrganization", name: siteConfig.name, sameAs: siteConfig.url },
+  };
+
+  const breadcrumbSchema = {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteConfig.url },
+      { "@type": "ListItem", position: 2, name: "Trainers", item: `${siteConfig.url}/trainers` },
+      { "@type": "ListItem", position: 3, name: trainer.name, item: trainerUrl },
+    ],
+  };
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [personSchema, breadcrumbSchema],
   };
 
   return (
@@ -48,6 +80,25 @@ export default async function TrainerDetailPage({
       <section className="relative overflow-hidden bg-brand-navy text-white">
         <BrandWatermark />
         <div className="relative mx-auto flex max-w-5xl flex-col items-center gap-5 px-4 py-16 text-center sm:px-6 lg:px-8">
+          <Breadcrumb>
+            <BreadcrumbList className="justify-center">
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link href="/" />} className="text-white/60 hover:text-white">
+                  Home
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="text-white/40" />
+              <BreadcrumbItem>
+                <BreadcrumbLink render={<Link href="/trainers" />} className="text-white/60 hover:text-white">
+                  Trainers
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="text-white/40" />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="text-white">{trainer.name}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
           <div className="relative h-28 w-28 overflow-hidden rounded-full border-4 border-white/10 bg-white/10">
             {photoUrl ? (
               <Image src={photoUrl} alt={trainer.name} fill className="object-cover" />

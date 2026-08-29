@@ -7,6 +7,14 @@ import { getCourseBySlug, getRelatedCourses } from "@/lib/data/courses";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -22,7 +30,9 @@ import { BrandWatermark } from "@/components/site/brand-watermark";
 import { formatINR, modeLabels } from "@/lib/format";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { resolveStorageUrlOrNull } from "@/lib/storage";
+import { resolveStorageUrlOrNull, isSignableStorageUrl } from "@/lib/storage";
+import { siteConfig } from "@/lib/site-config";
+import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -32,10 +42,14 @@ export async function generateMetadata({
   const { slug } = await params;
   const course = await getCourseBySlug(slug);
   if (!course) return {};
-  return {
+  return pageMetadata({
     title: course.title,
     description: course.shortDescription,
-  };
+    path: `/courses/${course.slug}`,
+    image:
+      course.thumbnailUrl && !isSignableStorageUrl(course.thumbnailUrl) ? course.thumbnailUrl : undefined,
+    imageIsItemSpecific: true,
+  });
 }
 
 export default async function CourseDetailPage({
@@ -59,15 +73,33 @@ export default async function CourseDetailPage({
       ? course.reviews.reduce((s, r) => s + r.rating, 0) / course.reviews.length
       : null;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
+  const courseUrl = `${siteConfig.url}/courses/${course.slug}`;
+  const schemaImageUrl =
+    course.thumbnailUrl && !isSignableStorageUrl(course.thumbnailUrl) ? course.thumbnailUrl : null;
+
+  const offers = {
+    "@type": "Offer",
+    price: Number(course.regularFee),
+    priceCurrency: "INR",
+    availability:
+      course.batches.length === 0
+        ? "https://schema.org/OutOfStock"
+        : course.batches.some((b) => b.seatsFilled < b.seatTotal)
+          ? "https://schema.org/InStock"
+          : "https://schema.org/SoldOut",
+    url: courseUrl,
+  };
+
+  const courseSchema = {
     "@type": "Course",
     name: course.title,
     description: course.shortDescription,
+    url: courseUrl,
+    ...(schemaImageUrl ? { image: schemaImageUrl } : {}),
     provider: {
       "@type": "Organization",
-      name: "Talent Expert",
-      sameAs: process.env.NEXT_PUBLIC_SITE_URL,
+      name: siteConfig.name,
+      sameAs: siteConfig.url,
     },
     ...(avgRating
       ? {
@@ -87,6 +119,43 @@ export default async function CourseDetailPage({
           })),
         }
       : {}),
+    offers,
+  };
+
+  const breadcrumbSchema = {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteConfig.url },
+      { "@type": "ListItem", position: 2, name: "Courses", item: `${siteConfig.url}/courses` },
+      ...(course.category
+        ? [
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: course.category.name,
+              item: `${siteConfig.url}/courses?category=${course.category.slug}`,
+            },
+          ]
+        : []),
+      { "@type": "ListItem", position: course.category ? 4 : 3, name: course.title, item: courseUrl },
+    ],
+  };
+
+  const faqSchema =
+    faqs.length > 0
+      ? {
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }
+      : null;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [courseSchema, breadcrumbSchema, ...(faqSchema ? [faqSchema] : [])],
   };
 
   return (
@@ -96,6 +165,25 @@ export default async function CourseDetailPage({
         <BrandWatermark />
         <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1.4fr_1fr] lg:px-8">
           <div>
+            <Breadcrumb className="mb-4">
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link href="/" />} className="text-white/60 hover:text-white">
+                    Home
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="text-white/40" />
+                <BreadcrumbItem>
+                  <BreadcrumbLink render={<Link href="/courses" />} className="text-white/60 hover:text-white">
+                    Courses
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="text-white/40" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="text-white">{course.title}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
             {course.category ? (
               <Badge className="bg-white/10 text-white hover:bg-white/15">{course.category.name}</Badge>
             ) : null}

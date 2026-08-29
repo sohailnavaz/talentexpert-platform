@@ -7,11 +7,13 @@ import { CourseFilters } from "@/components/site/course-filters";
 import { CourseCard } from "@/components/site/course-card";
 import { Button } from "@/components/ui/button";
 import type { DeliveryMode } from "@/generated/prisma";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "All Courses",
-  description: "Browse the full Talent Expert course catalogue — filter by category and mode.",
-};
+  description: "Browse the full Talent Expert Edu course catalogue — filter by category and mode.",
+  path: "/courses",
+});
 
 const PAGE_SIZE = 9;
 

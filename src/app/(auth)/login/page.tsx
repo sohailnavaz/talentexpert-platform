@@ -7,7 +7,11 @@ import { GoogleSignInButton } from "@/components/auth/google-signin-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { loginStudent } from "@/lib/actions/auth";
 
-export const metadata: Metadata = { title: "Student Login" };
+export const metadata: Metadata = {
+  title: "Student Login",
+  alternates: { canonical: "/login" },
+  robots: { index: false, follow: false },
+};
 
 export default function StudentLoginPage() {
   return (

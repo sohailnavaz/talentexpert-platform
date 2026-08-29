@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { getFeaturedCourses, getUpcomingBatches } from "@/lib/data/courses";
 import { getActivePlacements, getActiveTestimonials, getPublishedPosts } from "@/lib/data/content";
@@ -10,6 +11,8 @@ import { PlacementsWall } from "@/components/site/home/placements-wall";
 import { Testimonials } from "@/components/site/home/testimonials";
 import { BlogPreview } from "@/components/site/home/blog-preview";
 import { FinalCta } from "@/components/site/home/final-cta";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default async function HomePage() {
   const [courses, batches, placements, testimonials, posts, studentsCount, coursesCount] =

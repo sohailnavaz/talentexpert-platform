@@ -5,11 +5,13 @@ import { getActiveTrainers } from "@/lib/data/content";
 import { PageHero } from "@/components/site/page-hero";
 import { RevealItem, RevealStagger } from "@/components/ui-fx/reveal";
 import { resolveStorageUrlOrNull } from "@/lib/storage";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Trainers",
-  description: "Meet the working professionals who teach every Talent Expert batch.",
-};
+  description: "Meet the working professionals who teach every Talent Expert Edu batch.",
+  path: "/trainers",
+});
 
 export default async function TrainersPage() {
   const trainersRaw = await getActiveTrainers();

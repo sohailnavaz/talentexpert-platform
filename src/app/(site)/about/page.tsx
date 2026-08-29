@@ -6,11 +6,13 @@ import { SectionHeading } from "@/components/site/section-heading";
 import { BentoCard, BentoGrid } from "@/components/ui-fx/bento-grid";
 import { getActiveTrainers } from "@/lib/data/content";
 import { Reveal } from "@/components/ui-fx/reveal";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "About Us",
-  description: "Who Talent Expert is, what we believe in, and how we train.",
-};
+  description: "Who Talent Expert Edu is, what we believe in, and how we train.",
+  path: "/about",
+});
 
 export default async function AboutPage() {
   const trainers = await getActiveTrainers();

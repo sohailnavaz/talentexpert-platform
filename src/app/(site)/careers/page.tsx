@@ -6,11 +6,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { JobApplicationDialog } from "@/components/site/job-application-dialog";
 import { cn } from "@/lib/utils";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Careers & Job Openings",
-  description: "Job openings shared with Talent Expert learners and alumni.",
-};
+  description: "Job openings shared with Talent Expert Edu learners and alumni.",
+  path: "/careers",
+});
 
 export default async function CareersPage() {
   const jobs = await getActiveJobOpenings();

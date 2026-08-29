@@ -7,11 +7,13 @@ import { PageHero } from "@/components/site/page-hero";
 import { formatDate } from "@/lib/format";
 import { resolveStorageUrlOrNull } from "@/lib/storage";
 import { RevealItem, RevealStagger } from "@/components/ui-fx/reveal";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Blog",
-  description: "Career tips, interview prep and industry notes from the Talent Expert team.",
-};
+  description: "Career tips, interview prep and industry notes from the Talent Expert Edu team.",
+  path: "/blog",
+});
 
 const CATEGORY_LABELS: Record<string, string> = {
   "interview-questions": "Interview Questions",

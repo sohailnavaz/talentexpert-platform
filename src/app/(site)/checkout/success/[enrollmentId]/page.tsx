@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
 
-export const metadata: Metadata = { title: "Enrolment confirmed" };
+export const metadata: Metadata = { title: "Enrolment confirmed", robots: { index: false, follow: false } };
 
 export default async function CheckoutSuccessPage({
   params,

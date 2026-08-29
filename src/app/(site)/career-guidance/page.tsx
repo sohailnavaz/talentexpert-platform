@@ -12,12 +12,14 @@ import { PageHero } from "@/components/site/page-hero";
 import { EnquiryDialog } from "@/components/site/enquiry-dialog";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Career Guidance",
   description:
     "Practical, no-fluff career guidance for career switchers and freshers — choosing a course, building a resume, interview prep, and what to expect from your first tech job search.",
-};
+  path: "/career-guidance",
+});
 
 const GUIDES = [
   {

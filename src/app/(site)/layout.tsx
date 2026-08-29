@@ -29,7 +29,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
     description: siteConfig.description,
     telephone: contact.phone,
     email: contact.email,
-    address: { "@type": "PostalAddress", streetAddress: contact.address },
+    address: { "@type": "PostalAddress", streetAddress: contact.address, addressCountry: "IN" },
     sameAs: Object.values(contact.socials).filter(Boolean),
   };
 

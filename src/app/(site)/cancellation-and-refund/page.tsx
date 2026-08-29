@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { PageHero } from "@/components/site/page-hero";
 import { siteConfig } from "@/lib/site-config";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Cancellation & Refund Policy" };
+export const metadata: Metadata = pageMetadata({
+  title: "Cancellation & Refund Policy",
+  description: `Refund eligibility and timelines for cancelling a ${siteConfig.name} course enrolment.`,
+  path: "/cancellation-and-refund",
+});
 
 export default function CancellationRefundPage() {
   return (

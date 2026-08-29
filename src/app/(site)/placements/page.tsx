@@ -11,11 +11,13 @@ import { EnquiryDialog } from "@/components/site/enquiry-dialog";
 import { Testimonials } from "@/components/site/home/testimonials";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Placements",
-  description: "Placement assistance, hiring partners and where our students landed.",
-};
+  description: "Placement assistance, hiring partners and where Talent Expert Edu students landed.",
+  path: "/placements",
+});
 
 export default async function PlacementsPage() {
   const [placementsRaw, testimonials, placedCount, hiringPartners] = await Promise.all([

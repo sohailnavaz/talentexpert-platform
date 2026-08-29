@@ -9,7 +9,7 @@ import { formatDate, formatINR, modeLabels } from "@/lib/format";
 import { getActiveOffer, computeEffectiveFee } from "@/lib/pricing";
 import { getStudentSession } from "@/lib/auth/session";
 
-export const metadata: Metadata = { title: "Enrol now" };
+export const metadata: Metadata = { title: "Enrol now", robots: { index: false, follow: false } };
 
 export default async function CheckoutPage({
   params,

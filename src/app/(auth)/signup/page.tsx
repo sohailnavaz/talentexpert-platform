@@ -4,7 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { SignupForm } from "@/components/auth/signup-form";
 import { GoogleSignInButton } from "@/components/auth/google-signin-button";
 
-export const metadata: Metadata = { title: "Create Account" };
+export const metadata: Metadata = {
+  title: "Create Account",
+  alternates: { canonical: "/signup" },
+  robots: { index: false, follow: false },
+};
 
 export default function SignupPage() {
   return (

@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { PageHero } from "@/components/site/page-hero";
 import { siteConfig } from "@/lib/site-config";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Terms & Conditions" };
+export const metadata: Metadata = pageMetadata({
+  title: "Terms & Conditions",
+  description: `The terms that apply when you enrol in a course or use ${siteConfig.domain}.`,
+  path: "/terms-and-conditions",
+});
 
 export default function TermsPage() {
   return (

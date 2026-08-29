@@ -4,11 +4,13 @@ import { PageHero } from "@/components/site/page-hero";
 import { Card, CardContent } from "@/components/ui/card";
 import { ContactForm } from "@/components/site/contact-form";
 import { getSiteContactInfo } from "@/lib/site-settings";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Contact",
-  description: "Get in touch with Talent Expert — phone, email, or send us a message.",
-};
+  description: "Get in touch with Talent Expert Edu — phone, email, or send us a message.",
+  path: "/contact",
+});
 
 export default async function ContactPage() {
   const siteConfig = await getSiteContactInfo();

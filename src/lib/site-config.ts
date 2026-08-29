@@ -1,5 +1,5 @@
 export const siteConfig = {
-  name: "Talent Expert",
+  name: "Talent Expert Edu",
   legalName: "Talent Expert",
   domain: "talentexpertedu.com",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.talentexpertedu.com",

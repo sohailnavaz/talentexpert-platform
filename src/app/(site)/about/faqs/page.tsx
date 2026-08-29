@@ -6,11 +6,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "FAQs",
-  description: "Common questions about enrolling, paying and learning at Talent Expert.",
-};
+  description: "Common questions about enrolling, paying and learning at Talent Expert Edu.",
+  path: "/about/faqs",
+});
 
 const FAQS = [
   {

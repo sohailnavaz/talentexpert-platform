@@ -13,7 +13,7 @@ import { formatDate, formatINR, modeLabels } from "@/lib/format";
 import { getActiveOffer, computeEffectiveFee } from "@/lib/pricing";
 import { resolveStorageUrl, VIDEO_URL_EXPIRY_SECONDS } from "@/lib/storage";
 
-export const metadata: Metadata = { title: "Free intro class" };
+export const metadata: Metadata = { title: "Free intro class", robots: { index: false, follow: false } };
 
 export default async function FreePreviewPage({
   params,
